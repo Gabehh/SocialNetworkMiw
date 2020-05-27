@@ -63,7 +63,14 @@ namespace SocialNetworkMiw.Controllers
                 var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
                 if(!collection.Find(new BsonDocument("$where", "this.Email == '" + register.Email + "'")).Any())
                 {
-                    User user = new User() { Name = register.Name, Email = register.Email, Password = register.Password };
+                    User user = new User()
+                    {
+                        Name = register.Name,
+                        Email = register.Email,
+                        Password =  register.Password,
+                        Friends = new List<MongoDBRef>(),
+                        Posts = new List<MongoDBRef>()
+                    };
                     collection.InsertOne(user);
                     await SignIn(user);
                     return RedirectToAction("Index", "Home");
@@ -76,7 +83,7 @@ namespace SocialNetworkMiw.Controllers
         //
         // POST: /Account/Login
         [HttpPost]
-        public async Task<ActionResult> Login(LoginViewModel model, string returnUrl)
+        public async Task<ActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -114,7 +121,7 @@ namespace SocialNetworkMiw.Controllers
                 new AuthenticationProperties
                 {
                     IsPersistent = true,
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(20)
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(20),
                 });
         }
 
