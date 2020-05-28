@@ -68,8 +68,8 @@ namespace SocialNetworkMiw.Controllers
                         Name = register.Name,
                         Email = register.Email,
                         Password =  register.Password,
-                        Friends = new List<MongoDBRef>(),
-                        Posts = new List<MongoDBRef>()
+                        Friends = new List<ObjectId>(),
+                        Posts = new List<ObjectId>()
                     };
                     collection.InsertOne(user);
                     await SignIn(user);

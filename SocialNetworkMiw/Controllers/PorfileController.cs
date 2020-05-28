@@ -29,15 +29,19 @@ namespace SocialNetworkMiw.Controllers
 
             var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
             var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+
             if (user == null)
                 return NotFound();
 
-            var mongodbRef = new MongoDBRef("User", id);
-            var currentUser = collection.Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier).Value.ToString() + "'")).Single();
+            var currentUser = collection
+                            .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
+                            .Value.ToString() + "'")).Single();
+
             PorfileViewModel porfileViewModel = new PorfileViewModel();
             if (currentUser.Id == id) porfileViewModel.Porfile = TypePorfile.Porfile.User;
-            else if(currentUser.Friends.Contains(mongodbRef)) porfileViewModel.Porfile = TypePorfile.Porfile.Friend;
+            else if(currentUser.Friends.Contains(new ObjectId(id))) porfileViewModel.Porfile = TypePorfile.Porfile.Friend;
             else porfileViewModel.Porfile = TypePorfile.Porfile.Unknown;
+
             porfileViewModel.BirthDate = user.BirthDate;
             porfileViewModel.BornIn = user.BornIn;
             porfileViewModel.Email = user.Email;
