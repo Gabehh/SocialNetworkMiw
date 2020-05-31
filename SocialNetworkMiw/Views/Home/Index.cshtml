@@ -1,8 +1,26 @@
-﻿@{
+﻿@model SocialNetworkMiw.Models.HomeViewModel
+
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    @await Component.InvokeAsync("CreatePost")
 </div>
+
+@foreach (var post in Model.Posts)
+{
+    if (@post.Type == "image")
+    {
+        <img src="@Url.Content(post.FileUrl)"/>
+    }
+    else
+    {
+        <iframe src="@Url.Content(post.FileUrl)"></iframe>
+    }
+    <br />
+    <h1>@post.Description</h1>
+}
+
+

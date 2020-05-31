@@ -1,5 +1,6 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -38,5 +39,11 @@ namespace SocialNetworkMiw.Models
 
         [BsonElement("BornIn")]
         public string BornIn { get; set; }
+
+        [BsonElement("Posts")]
+        public List<string> Posts { get; set; }
+
+        [BsonElement("Friends")]
+        public List<string> Friends { get; set; }
     }
 }
