@@ -1,10 +1,8 @@
 ﻿@model SocialNetworkMiw.Models.PorfileViewModel
-
+@using SocialNetworkMiw.Models
 @{
     ViewData["Title"] = Model.Name;
 }
-
-
     <div>
         <h4>@Model.Name</h4>
         <hr />
@@ -51,10 +49,30 @@
         </dl>
         @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
         {
-            // POSTS
+            if (Model.Porfile == TypePorfile.Porfile.User)
+            {
+                @await Component.InvokeAsync("CreatePost");
+            }
+
+            @foreach (var post in Model.Posts)
+            {
+                if (@post.Type == "image")
+                {
+                    <img src="@Url.Content(post.FileUrl)" />
+                }
+                else
+                {
+                    <iframe src="@Url.Content(post.FileUrl)"></iframe>
+                }
+                <br />
+                <h1>@post.Description</h1>
+            }
         }
     </div>
 <div>
     @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
     <a asp-action="Index">Back to List</a>
 </div>
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

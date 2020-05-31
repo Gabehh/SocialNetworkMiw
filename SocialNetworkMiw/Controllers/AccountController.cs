@@ -49,7 +49,7 @@ namespace SocialNetworkMiw.Controllers
 
         public async Task<ActionResult> Logout()
         {
-           await HttpContext.SignOutAsync(
+            await HttpContext.SignOutAsync(
             CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index","Home");
         }
@@ -68,8 +68,8 @@ namespace SocialNetworkMiw.Controllers
                         Name = register.Name,
                         Email = register.Email,
                         Password =  register.Password,
-                        Friends = new List<ObjectId>(),
-                        Posts = new List<ObjectId>()
+                        Friends = new List<string>(),
+                        Posts = new List<string>()
                     };
                     collection.InsertOne(user);
                     await SignIn(user);

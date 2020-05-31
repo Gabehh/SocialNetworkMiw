@@ -41,9 +41,9 @@ namespace SocialNetworkMiw.Models
         public string BornIn { get; set; }
 
         [BsonElement("Posts")]
-        public List<ObjectId> Posts { get; set; }
+        public List<string> Posts { get; set; }
 
         [BsonElement("Friends")]
-        public List<ObjectId> Friends { get; set; }
+        public List<string> Friends { get; set; }
     }
 }

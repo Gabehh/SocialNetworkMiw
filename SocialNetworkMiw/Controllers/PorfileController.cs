@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -12,6 +15,7 @@ using SocialNetworkMiw.Models;
 
 namespace SocialNetworkMiw.Controllers
 {
+    [Authorize]
     public class PorfileController : Controller
     {
         private readonly MongoClient mongoClient;
@@ -24,29 +28,35 @@ namespace SocialNetworkMiw.Controllers
         // GET: Porfile/Details/5
         public ActionResult Details(string id)
         {
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(id)) 
                 return NotFound();
 
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
-
-            if (user == null)
+            var collectionUsers = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+            var user = collectionUsers.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+            
+            if (user == null) 
                 return NotFound();
 
-            var currentUser = collection
+            var currentUser = collectionUsers
                             .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                            .Value.ToString() + "'")).Single();
+                            .Value + "'")).Single();
 
             PorfileViewModel porfileViewModel = new PorfileViewModel();
-            if (currentUser.Id == id) porfileViewModel.Porfile = TypePorfile.Porfile.User;
-            else if(currentUser.Friends.Contains(new ObjectId(id))) porfileViewModel.Porfile = TypePorfile.Porfile.Friend;
-            else porfileViewModel.Porfile = TypePorfile.Porfile.Unknown;
+
+            if (currentUser.Id == id) 
+                porfileViewModel.Porfile = TypePorfile.Porfile.User;
+            else if(currentUser.Friends.Contains(id)) 
+                porfileViewModel.Porfile = TypePorfile.Porfile.Friend;
+            else 
+                porfileViewModel.Porfile = TypePorfile.Porfile.Unknown;
 
             porfileViewModel.BirthDate = user.BirthDate;
             porfileViewModel.BornIn = user.BornIn;
             porfileViewModel.Email = user.Email;
             porfileViewModel.Job = user.Job;
-            //porfileViewModel.Posts
+            var filterPost = Builders<Post>.Filter.In(u=>u.Id, user.Posts);
+            porfileViewModel.Posts = collectionPost.Find(filterPost).ToList();
             //porfileViewModel.Photos 
             porfileViewModel.City = user.City;
             porfileViewModel.Id = user.Id;
@@ -63,21 +73,35 @@ namespace SocialNetworkMiw.Controllers
             return View();
         }
 
+
+
         // POST: Porfile/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+        public async Task<IActionResult> CreatePost(CreatePostViewModel createPostViewModel)
         {
-            try
+            if (ModelState.IsValid)
             {
-                // TODO: Add insert logic here
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", createPostViewModel.FileUrl.FileName);
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await createPostViewModel.FileUrl.CopyToAsync(stream);
+                }
+                var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+                var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+                Post post = new Post()
+                {
+                    FileUrl = "/Images/" + Path.GetFileName(path),
+                    Description = createPostViewModel.Description
+                };
+                collectionPost.InsertOne(post);
+                var currentUser = collectionUser
+                                .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
+                                .Value + "'")).Single();
+                currentUser.Posts.Add(post.Id);
+                collectionUser.ReplaceOne(x => x.Id == currentUser.Id, currentUser);
+            }
+            return RedirectToAction(nameof(Details), new { id = User.FindFirst(ClaimTypes.NameIdentifier).Value});
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
         }
 
         // GET: Porfile/Edit/5
