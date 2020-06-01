@@ -66,6 +66,23 @@
                 }
                 <br />
                 <h1>@post.Description</h1>
+                <div id="@post.Id">
+                    @if (post.Comments != null)
+                    {
+                        @foreach (var comment in post.Comments)
+                        {
+                            <label class="control-label"> @comment.User (@comment.DateTime) said: @comment.Description </label><br />
+                        }
+                    }
+                </div>
+                <form>
+                    <div class="form-group">
+                        <input placeholder="Write a comment" class="form-control @post.Id" />
+                    </div>
+                    <div class="form-group">
+                        <input type="button" value="Send" onclick="WriteComment('@post.Id',$('.@post.Id').val())" class="btn btn-primary" />
+                    </div>
+                </form>
             }
         }
     </div>
@@ -73,6 +90,39 @@
     @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
     <a asp-action="Index">Back to List</a>
 </div>
+
+<script>
+    function WriteComment(post, comment) {
+        var url = '/Porfile/WriteComment';
+        fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({ IdPost: post, Comment: comment }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(function (response) {
+            if (response.status == 200) {
+                response.json().then(function (data) {
+                    if (data.isValid) {
+                        var date = new Date(data.comment.dateTime)
+                        $("#" + post).append('<label class="control-label">' + data.comment.user +
+                            ' (' + (date.toLocaleString()) + ') said: ' + data.comment.description + ' </label><br />');
+                        $("."+post).val("");
+                    }
+                    else {
+                        alert("error");
+                    }
+                });
+            }
+        })
+        .catch(function (err) {
+            console.log(`error: ${err}`);
+        });
+    }
+
+</script>
+
+
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }

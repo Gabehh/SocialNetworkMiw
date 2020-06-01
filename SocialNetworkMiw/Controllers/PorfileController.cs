@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -148,6 +150,40 @@ namespace SocialNetworkMiw.Controllers
             {
                 return View();
             }
+        }
+
+        [HttpPost]
+        public JsonResult WriteComment([FromBody] CreateCommentViewModel createCommentViewModel)
+        {
+            if(string.IsNullOrEmpty(createCommentViewModel.Comment))
+            {
+                return Json(new
+                {
+                    isValid = false
+                });
+            }
+            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+            var post = collectionPost
+                       .Find(new BsonDocument("$where", "this._id == '" + createCommentViewModel.IdPost + "'")).Single();
+            Comment comment = new Comment()
+            {
+                DateTime = DateTime.Now,
+                Description = createCommentViewModel.Comment,
+                User = User.FindFirst(ClaimTypes.Name).Value
+            };
+            if (post.Comments == null)
+                post.Comments = new List<Comment>()
+                {
+                    comment
+                };
+            else
+                post.Comments.Add(comment);
+            collectionPost.ReplaceOne(x => x.Id == post.Id, post);
+            return Json(new
+            {
+                isValid = true,
+                comment
+            });
         }
     }
 }
