@@ -6,6 +6,7 @@
     <title>@ViewData["Title"] - SocialNetworkMiw</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
 </head>
 <body>
     <header>
@@ -24,6 +25,15 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
+                        }
+                        else
+                        {
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Login">Login</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Create">Register</a>
+                        }
                     </ul>
                 </div>
             </div>
@@ -40,7 +50,6 @@
             &copy; 2020 - SocialNetworkMiw - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
