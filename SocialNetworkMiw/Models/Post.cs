@@ -2,6 +2,7 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.IO;
@@ -21,7 +22,16 @@ namespace SocialNetworkMiw.Models
         [DataType(DataType.Upload)]
         public string FileUrl { get; set; }
 
-        public string Type { get { return GetTypeFile(); } }
+        [BsonElement("Comments")]
+        public List<Comment> Comments { get; set; }
+
+        public string Type 
+        { 
+            get 
+            { 
+                return GetTypeFile(); 
+            } 
+        }
 
         private string GetTypeFile()
         {

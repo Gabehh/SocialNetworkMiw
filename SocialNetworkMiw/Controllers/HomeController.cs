@@ -76,7 +76,7 @@ namespace SocialNetworkMiw.Controllers
                     FileUrl = "/Images/" + Path.GetFileName(path),
                     Description = createPostViewModel.Description
                 };
-                collectionPost.InsertOne(post);
+                await collectionPost.InsertOneAsync(post);
                 var currentUser = collectionUser
                                 .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
                                 .Value + "'")).Single();
@@ -86,5 +86,8 @@ namespace SocialNetworkMiw.Controllers
             return RedirectToAction(nameof(Index));
 
         }
+
+
+
     }
 }
