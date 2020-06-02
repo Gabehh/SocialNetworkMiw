@@ -3,8 +3,7 @@
 <div id="createPost" style="display:none">
     <h4>Create Post</h4>
     <hr />
-    <div class="row">
-        <div class="col-md-4">
+        <div>
             <form asp-action="CreatePost" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group">
@@ -22,14 +21,11 @@
                 </div>
             </form>
         </div>
-    </div>
-    <div>
-        <a asp-action="Index">Back to List</a>
-    </div>
 </div>
 
 <script>
     $("#create").click(function () {
         $("#createPost").css("display", "block");
+        $("#create").css("display", "none");
     });
 </script>
