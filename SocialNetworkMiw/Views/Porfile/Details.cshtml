@@ -3,132 +3,71 @@
 @{
     ViewData["Title"] = Model.Name;
 }
-    <div class="row">
-        <div class="col-md-4">
-            <h4>@Model.Name</h4>
-            <hr />
-            <dl class="row">
-                @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
-                {
-                    <dt class="col-sm-2">
-                        @Html.DisplayNameFor(model => model.Email)
-                    </dt>
-                    <dd class="col-sm-10">
-                        @Html.DisplayFor(model => model.Email)
-                    </dd>
-                    <dt class="col-sm-2">
-                        @Html.DisplayNameFor(model => model.BirthDate)
-                    </dt>
-                    <dd class="col-sm-10">
-                        @Html.DisplayFor(model => model.BirthDate)
-                    </dd>
-                    <dt class="col-sm-2">
-                        @Html.DisplayNameFor(model => model.Job)
-                    </dt>
-                    <dd class="col-sm-10">
-                        @Html.DisplayFor(model => model.Job)
-                    </dd>
-                    <dt class="col-sm-2">
-                        @Html.DisplayNameFor(model => model.BornIn)
-                    </dt>
-                    <dd class="col-sm-10">
-                        @Html.DisplayFor(model => model.BornIn)
-                    </dd>
-                }
-                <dt class="col-sm-2">
-                    @Html.DisplayNameFor(model => model.City)
-                </dt>
-                <dd class="col-sm-10">
-                    @Html.DisplayFor(model => model.City)
-                </dd>
-                <dt class="col-sm-2">
-                    @Html.DisplayNameFor(model => model.Friends)
-                </dt>
-                <dd class="col-sm-10">
-                    @Html.Label(@Model.Friends == null ? "0" : @Model.Friends.Count().ToString())
-                </dd>
-            </dl>
-        </div>
-
-        @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
-        {
-            if (Model.Porfile == TypePorfile.Porfile.User)
+<div class="row">
+    <div class="col-md-4">
+        <h4>@Model.Name</h4>
+        <hr />
+        <dl class="row">
+            @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
             {
-                <div class="col-md-6">
-                    @await Component.InvokeAsync("CreatePost")
-                </div>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Email)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Email)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.BirthDate)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.BirthDate)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.Job)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.Job)
+                </dd>
+                <dt class="col-sm-2">
+                    @Html.DisplayNameFor(model => model.BornIn)
+                </dt>
+                <dd class="col-sm-10">
+                    @Html.DisplayFor(model => model.BornIn)
+                </dd>
             }
-            <div class="col-md-4">
-            </div>
-            <div class="col-md-6">
-                @foreach (var post in Model.Posts)
-                {
-                    <label class="control-label"><strong>@post.Description</strong></label>
-                    if (@post.Type == "image")
-                    {
-                        <img src="@Url.Content(post.FileUrl)" style="width:600px;height:600px" />
-                    }
-                    else
-                    {
-                        <iframe src="@Url.Content(post.FileUrl)"></iframe>
-                    }
-                    <br />
-                    <br />
-                    <div id="@post.Id">
-                        @if (post.Comments != null)
-                        {
-                            @foreach (var comment in post.Comments)
-                            {
-                                <label class="control-label"> @comment.User (@comment.DateTime) said: @comment.Description </label><br />
-                            }
-                        }
-                    </div>
-                    <form>
-                        <div class="form-group">
-                            <input placeholder="Write a comment" class="form-control @post.Id" />
-                        </div>
-                        <div class="form-group">
-                            <input type="button" value="Send" onclick="WriteComment('@post.Id',$('.@post.Id').val())" class="btn btn-primary" />
-                        </div>
-                    </form>
-                }
-            </div>
-        }
-
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.City)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.City)
+            </dd>
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Friends)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.Label(@Model.Friends == null ? "0" : @Model.Friends.Count().ToString())
+            </dd>
+        </dl>
     </div>
 
-    <script>
-        function WriteComment(post, comment) {
-            var url = '/Porfile/WriteComment';
-            fetch(url, {
-                method: 'POST',
-                body: JSON.stringify({ IdPost: post, Comment: comment }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(function (response) {
-                if (response.status == 200) {
-                    response.json().then(function (data) {
-                        if (data.isValid) {
-                            var date = new Date(data.comment.dateTime)
-                            $("#" + post).append('<label class="control-label">' + data.comment.user +
-                                ' (' + (date.toLocaleString()) + ') said: ' + data.comment.description + ' </label><br />');
-                            $("." + post).val("");
-                        }
-                        else {
-                            alert("error");
-                        }
-                    });
-                }
-            })
-                .catch(function (err) {
-                    console.log(`error: ${err}`);
-                });
+    @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
+    {
+        if (Model.Porfile == TypePorfile.Porfile.User)
+        {
+            <div class="col-md-6">
+                @await Component.InvokeAsync("CreatePost")
+            </div>
         }
-
-    </script>
-
-
-    @section Scripts {
-        @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+        <div class="col-md-4">
+        </div>
+        <div class="col-md-6">
+            @await Component.InvokeAsync("ShowPosts", Model.Posts)
+        </div>
     }
+
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/comment.js"></script>
+}
