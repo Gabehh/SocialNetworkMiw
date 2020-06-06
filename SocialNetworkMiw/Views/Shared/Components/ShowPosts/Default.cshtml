@@ -1,0 +1,46 @@
+﻿@model List<Post>
+@foreach (var post in Model)
+{
+    <label class="control-label"><strong>@post.Description</strong></label>
+    if (@post.Type == "image")
+    {
+        <img src="@Url.Content(post.FileUrl)" style="width:600px;height:600px" />
+    }
+    else
+    {
+        <br />
+        <iframe src="@Url.Content(post.FileUrl)"></iframe>
+    }
+    <br />
+    <br />
+    <div id="accordion">
+        <div class="card">
+            <div class="card-header">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#collapse-@post.Id" aria-expanded="true">
+                    Write a comment
+                </button>
+                <div id="collapse-@post.Id" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <div id="@post.Id">
+                            @if (post.Comments != null)
+                            {
+                                @foreach (var comment in post.Comments)
+                                {
+                                    <label class="control-label"> @comment.User (@comment.DateTime) said: @comment.Description </label><br />
+                                }
+                            }
+                        </div>
+                        <form>
+                            <div class="form-group">
+                                <input placeholder="Write a comment" class="form-control @post.Id" />
+                            </div>
+                            <div class="form-group">
+                                <input type="button" value="Send" onclick="WriteComment('@post.Id',$('.@post.Id').val())" class="btn btn-primary" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

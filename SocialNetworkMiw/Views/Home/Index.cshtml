@@ -3,77 +3,18 @@
 @{
     ViewData["Title"] = "Home Page";
 }
-    <div class="row">
-            <div class="col-md-6">
-                @await Component.InvokeAsync("CreatePost")
-            </div>
-            <div class="col-md-6">
-                <br />
-                @foreach (var post in Model.Posts)
-                {
-                    <label class="control-label"><strong>@post.Description</strong></label>
-                    if (@post.Type == "image")
-                    {
-                        <img src="@Url.Content(post.FileUrl)" style="width:600px;height:600px" />
-                    }
-                    else
-                    {
-                        <iframe src="@Url.Content(post.FileUrl)"></iframe>
-                    }
-                    <br />
-                    <br />
-                    <div id="@post.Id">
-                        @if (post.Comments != null)
-                        {
-                            @foreach (var comment in post.Comments)
-                            {
-                                <label class="control-label"> @comment.User (@comment.DateTime) said: @comment.Description </label><br />
-                            }
-                        }
-                    </div>
-                    <form>
-                        <div class="form-group">
-                            <input placeholder="Write a comment" class="form-control @post.Id" />
-                        </div>
-                        <div class="form-group">
-                            <input type="button" value="Send" onclick="WriteComment('@post.Id',$('.@post.Id').val())" class="btn btn-primary" />
-                        </div>
-                    </form>
-                }
-            </div>
-        </div>
-        <script>
-            function WriteComment(post, comment) {
-                var url = '/Porfile/WriteComment';
-                fetch(url, {
-                    method: 'POST',
-                    body: JSON.stringify({ IdPost: post, Comment: comment }),
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }).then(function (response) {
-                    if (response.status == 200) {
-                        response.json().then(function (data) {
-                            if (data.isValid) {
-                                var date = new Date(data.comment.dateTime)
-                                $("#" + post).append('<label class="control-label">' + data.comment.user +
-                                    ' (' + (date.toLocaleString()) + ') said: ' + data.comment.description + ' </label><br />');
-                                $("." + post).val("");
-                            }
-                            else {
-                                alert("error");
-                            }
-                        });
-                    }
-                })
-                    .catch(function (err) {
-                        console.log(`error: ${err}`);
-                    });
-            }
+<div class="row">
+    <div class="col-6">
+        @await Component.InvokeAsync("CreatePost")
+    </div>
+    <div class="col-6">
+    </div>
+    <div class="col-6">
+        @await Component.InvokeAsync("ShowPosts", Model.Posts)
+    </div>
+</div>
 
-        </script>
-
-        @section Scripts {
-            @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-
-        }
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/comment.js"></script>
+}
