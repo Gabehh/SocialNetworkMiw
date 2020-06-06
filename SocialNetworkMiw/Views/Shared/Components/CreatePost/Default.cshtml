@@ -1,10 +1,14 @@
 ﻿@model SocialNetworkMiw.Models.CreatePostViewModel
-<button class="btn btn-primary" id="create">What's on your mind?</button>
-<div id="createPost" style="display:none">
-    <h4>Create Post</h4>
-    <hr />
-    <div class="row">
-        <div class="col-md-4">
+<p>
+    <a class="btn btn-primary" data-toggle="collapse" href="#createPost" role="button" aria-expanded="false" aria-controls="createPost">
+        What's on your mind?
+    </a>
+</p>
+<div id="createPost" class="collapse">
+    <div class="card card-body">
+        <h4>Create Post</h4>
+        <hr />
+        <div>
             <form asp-action="CreatePost" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group">
@@ -23,13 +27,4 @@
             </form>
         </div>
     </div>
-    <div>
-        <a asp-action="Index">Back to List</a>
-    </div>
 </div>
-
-<script>
-    $("#create").click(function () {
-        $("#createPost").css("display", "block");
-    });
-</script>
