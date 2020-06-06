@@ -1,0 +1,16 @@
+﻿@model IEnumerable<SocialNetworkMiw.Models.User>
+
+
+@if (!Model.Any())
+{
+    <h1>Users not found</h1>
+}
+
+@foreach (var item in Model)
+{
+    <div class="jumbotron">
+        <h1>@item.Name</h1>
+        <p>@item.City</p>
+    </div>
+}
+
