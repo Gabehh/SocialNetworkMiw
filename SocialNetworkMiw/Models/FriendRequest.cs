@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SocialNetworkMiw.Models
 {
-    public class RequestFriend
+    public class FriendRequest
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
@@ -19,7 +19,7 @@ namespace SocialNetworkMiw.Models
         [BsonElement("DateTime")]
         public DateTime DateTime { get; set; }
 
-        public RequestFriend()
+        public FriendRequest()
         {
             Id = ObjectId.GenerateNewId().ToString();
         }

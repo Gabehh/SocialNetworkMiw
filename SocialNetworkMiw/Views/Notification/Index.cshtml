@@ -1,0 +1,37 @@
+﻿@model IEnumerable<SocialNetworkMiw.Models.NotificationViewModel>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayName("Image")
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.DateTime)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.UrlImgUser)
+            </td>
+            <td>
+                <a href="@Url.Action("Details", "Porfile", new { id = item.UserId})">@item.UserName</a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DateTime)
+            </td>
+            <td>
+                @Html.ActionLink("Accept", "Accept", new { idFrindRequest = item.FriendRequestId }) |
+                @Html.ActionLink("Delete", "Delete", new { idFrindRequest = item.FriendRequestId })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

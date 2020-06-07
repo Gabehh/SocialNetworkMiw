@@ -50,6 +50,7 @@ namespace SocialNetworkMiw.Controllers
 
         public async Task<ActionResult> Logout()
         {
+            HttpContext.Session.Clear();
             await HttpContext.SignOutAsync(
             CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index","Home");
@@ -71,7 +72,7 @@ namespace SocialNetworkMiw.Controllers
                         Password =  register.Password,
                         Friends = new List<string>(),
                         Posts = new List<string>(),
-                        RequestFriends = new List<RequestFriend>()
+                        FriendRequests = new List<FriendRequest>()
                     };
                     collection.InsertOne(user);
                     await SignIn(user);
@@ -110,11 +111,11 @@ namespace SocialNetworkMiw.Controllers
         private async Task SignIn(User user)
         {
             var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, user.Name),
-                        new Claim(ClaimTypes.NameIdentifier, user.Id),
-                        new Claim(ClaimTypes.Email, user.Email),
-                    };
+            {
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Email, user.Email),
+            };
             var claimsIdentity = new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(
@@ -125,7 +126,7 @@ namespace SocialNetworkMiw.Controllers
                     IsPersistent = true,
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(20),
                 });
-                HttpContext.Session.SetString("User", JsonConvert.SerializeObject(user));
+                HttpContext.Session.SetString("UserId", user.Id);
         }
 
         // GET: Account/Edit/5

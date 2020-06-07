@@ -66,7 +66,7 @@ namespace SocialNetworkMiw.Controllers
             porfileViewModel.Id = user.Id;
             porfileViewModel.ImageUrl = user.ImageUrl;
             porfileViewModel.Name = user.Name;
-            porfileViewModel.RequestFriends = user.RequestFriends;
+            porfileViewModel.RequestFriends = user.FriendRequests;
             return View(porfileViewModel);
         }
 
@@ -76,20 +76,20 @@ namespace SocialNetworkMiw.Controllers
         public ActionResult AddFriend(string id, string returnUrl)
         {
             var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            RequestFriend requestFriend = new RequestFriend()
+            FriendRequest requestFriend = new FriendRequest()
             {
                 DateTime = DateTime.Now,
                 UserId = User.FindFirst(ClaimTypes.NameIdentifier).Value
             };
             var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
             string idUser = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            if (user.RequestFriends.Any(u => u.UserId == idUser) || user.Friends.Any(u=>u== idUser))
+            if (user.FriendRequests.Any(u => u.UserId == idUser) || user.Friends.Any(u=>u== idUser))
             {
                 return View("Error", new ErrorViewModel());
             }
             else
             {
-                user.RequestFriends.Add(requestFriend);
+                user.FriendRequests.Add(requestFriend);
                 collection.ReplaceOne(x => x.Id == user.Id, user);
                 if (string.IsNullOrEmpty(returnUrl))
                     return RedirectToAction(nameof(Details), new { id = user.Id });
