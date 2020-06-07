@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,9 +31,8 @@ namespace SocialNetworkMiw.Controllers
         [HttpGet]
         public ActionResult Details(string id)
         {
-            string userId = HttpContext.Session.GetString("UserId");
             var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + userId + "'")).Single();
+            var user = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
             ViewData["MyFrienRequests"] = user.FriendRequests;       
             return View(collection.Find(new BsonDocument("$where", "this.Name == '" + id + "'")).ToList());
         }

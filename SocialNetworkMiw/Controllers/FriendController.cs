@@ -29,9 +29,35 @@ namespace SocialNetworkMiw.Controllers
         }
 
         // GET: Friend/Details/5
-        public ActionResult Details(int id)
+        public ActionResult Details(string id)
         {
-            return View();
+            FriendViewModel friendViewModel = new FriendViewModel();
+            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            var currentUser = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+            if (id == currentUser.Id)
+            {            
+                friendViewModel.friends = collection.Find(Builders<User>.Filter.In(u => u.Id, currentUser.Friends)).ToList();
+                friendViewModel.name = "Your Friends";
+            }
+            else if(currentUser.Friends.Any(u => u == id))
+            {
+                var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single(); 
+                friendViewModel.friends = collection.Find(Builders<User>.Filter.In(u => u.Id, user.Friends)).ToList(); 
+                friendViewModel.name = String.Concat(user.Name,"'s"," friends");
+            }
+
+
+
+
+
+            //var currentUser = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+            //if (HttpContext.Session.GetString("UserId") == id || currentUser.Friends.Any(u => u == id))
+            //{
+            //    var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+            //    var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
+            //    return View(collection.Find(filterFriend).ToList());
+            //}
+            return View(friendViewModel);
         }
 
         // POST: Friend/Create
