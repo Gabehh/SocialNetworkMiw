@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -12,40 +13,30 @@ using SocialNetworkMiw.Models;
 
 namespace SocialNetworkMiw.Controllers
 {
-    [Authorize]
-    public class UserController : Controller
+    public class FriendController : Controller
     {
         private readonly MongoClient mongoClient;
 
-        public UserController(IConfiguration configuration)
+        public FriendController(IConfiguration configuration)
         {
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
         }
 
-
-
-        // GET: User
+        // GET: Friend
         public ActionResult Index()
         {
             return View();
         }
 
-        // GET: User/Details/5
-        [HttpGet]
-        public ActionResult Details(string id)
-        {
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            return View(collection.Find(new BsonDocument("$where", "this.Name == '" + id + "'")).ToList());
-        }
-
-        // GET: User/Create
-        public ActionResult Create()
+        // GET: Friend/Details/5
+        public ActionResult Details(int id)
         {
             return View();
         }
 
-        // POST: User/Create
+        // POST: Friend/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(IFormCollection collection)
         {
             try
@@ -60,14 +51,15 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
-        // GET: User/Edit/5
+        // GET: Friend/Edit/5
         public ActionResult Edit(int id)
         {
             return View();
         }
 
-        // POST: User/Edit/5
+        // POST: Friend/Edit/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(int id, IFormCollection collection)
         {
             try
@@ -82,14 +74,15 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
-        // GET: User/Delete/5
+        // GET: Friend/Delete/5
         public ActionResult Delete(int id)
         {
             return View();
         }
 
-        // POST: User/Delete/5
+        // POST: Friend/Delete/5
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Delete(int id, IFormCollection collection)
         {
             try

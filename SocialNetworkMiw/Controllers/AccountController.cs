@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace SocialNetworkMiw.Controllers
 {
@@ -69,7 +70,8 @@ namespace SocialNetworkMiw.Controllers
                         Email = register.Email,
                         Password =  register.Password,
                         Friends = new List<string>(),
-                        Posts = new List<string>()
+                        Posts = new List<string>(),
+                        RequestFriends = new List<RequestFriend>()
                     };
                     collection.InsertOne(user);
                     await SignIn(user);
@@ -123,6 +125,7 @@ namespace SocialNetworkMiw.Controllers
                     IsPersistent = true,
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(20),
                 });
+                HttpContext.Session.SetString("User", JsonConvert.SerializeObject(user));
         }
 
         // GET: Account/Edit/5

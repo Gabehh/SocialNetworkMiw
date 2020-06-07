@@ -23,8 +23,8 @@
                         @if (User.Identity.IsAuthenticated)
                         {
                             <li class="nav-item">
-                                <form asp-action="Details" asp-controller="User">
-                                    <input type="text" id="word" name="word" class="form-control" placeholder="Search users">
+                                <form asp-action="Details" asp-controller="User" method="get">
+                                    <input type="text" name="id" class="form-control" placeholder="Search users">
                                 </form>
                             </li>
                         }

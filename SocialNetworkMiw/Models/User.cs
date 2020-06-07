@@ -45,5 +45,8 @@ namespace SocialNetworkMiw.Models
 
         [BsonElement("Friends")]
         public List<string> Friends { get; set; }
+
+        [BsonElement("RequestFriends")]
+        public List<RequestFriend> RequestFriends { get; set; }
     }
 }

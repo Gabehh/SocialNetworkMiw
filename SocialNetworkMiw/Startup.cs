@@ -27,6 +27,10 @@ namespace SocialNetworkMiw
         {
             services.AddControllersWithViews();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromSeconds(10);
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,6 +53,7 @@ namespace SocialNetworkMiw
                 MinimumSameSitePolicy = SameSiteMode.Strict,
             };
             app.UseCookiePolicy(cookiePolicyOptions);
+            app.UseSession();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
