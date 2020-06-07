@@ -39,11 +39,7 @@ namespace SocialNetworkMiw.Controllers
                 .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
                 .Value + "'")).Single();
             var filterPost = Builders<Post>.Filter.In(u => u.Id, user.Posts);
-            HomeViewModel homeViewModel = new HomeViewModel()
-            {
-                Posts = collectionPost.Find(filterPost).ToList()
-            };
-            return View(homeViewModel);
+            return View(collectionPost.Find(filterPost).ToList());
         }
 
         public IActionResult Privacy()

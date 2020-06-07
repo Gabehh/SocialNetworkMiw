@@ -59,14 +59,44 @@ namespace SocialNetworkMiw.Controllers
             porfileViewModel.Job = user.Job;
             var filterPost = Builders<Post>.Filter.In(u=>u.Id, user.Posts);
             porfileViewModel.Posts = collectionPost.Find(filterPost).ToList();
+            var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
+            porfileViewModel.Friends = collectionUsers.Find(filterFriend).ToList();
             //porfileViewModel.Photos 
             porfileViewModel.City = user.City;
             porfileViewModel.Id = user.Id;
             porfileViewModel.ImageUrl = user.ImageUrl;
             porfileViewModel.Name = user.Name;
+            porfileViewModel.RequestFriends = user.FriendRequests;
             return View(porfileViewModel);
         }
 
+
+
+
+        public ActionResult AddFriend(string id, string returnUrl)
+        {
+            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            FriendRequest requestFriend = new FriendRequest()
+            {
+                DateTime = DateTime.Now,
+                UserId = User.FindFirst(ClaimTypes.NameIdentifier).Value
+            };
+            var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+            string idUser = User.FindFirst(ClaimTypes.NameIdentifier).Value;
+            if (user.FriendRequests.Any(u => u.UserId == idUser) || user.Friends.Any(u=>u== idUser))
+            {
+                return View("Error", new ErrorViewModel());
+            }
+            else
+            {
+                user.FriendRequests.Add(requestFriend);
+                collection.ReplaceOne(x => x.Id == user.Id, user);
+                if (string.IsNullOrEmpty(returnUrl))
+                    return RedirectToAction(nameof(Details), new { id = user.Id });
+                else
+                    return Redirect(returnUrl);
+            }
+        }
 
 
         // GET: Porfile/Create

@@ -35,6 +35,8 @@ namespace SocialNetworkMiw.Models
         public List<Post> Posts { get; set; }
         
         public List<User> Friends { get; set; }
+
+        public List<FriendRequest> RequestFriends { get; set; }
         
     }
 }

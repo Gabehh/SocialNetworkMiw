@@ -20,6 +20,14 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
                     <partial name="_LoginPartial" />
                     <ul class="navbar-nav flex-grow-1">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <form asp-action="Details" asp-controller="User" method="get">
+                                    <input type="text" name="id" class="form-control" placeholder="Search users">
+                                </form>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
