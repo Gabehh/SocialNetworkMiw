@@ -1,0 +1,20 @@
+﻿@model FriendViewModel
+
+
+
+@if (Model.friends != null)
+{
+    <h1>@Model.name</h1>
+    @foreach (var item in Model.friends)
+    {
+        <div class="jumbotron">
+            <a class="nav-link text-dark" href="@Url.Action("Details", "Porfile", new { id = item.Id })">@item.Name</a>
+            <p>@item.City</p>
+        </div>
+    }
+}
+else
+{
+    <h1>You can't see the friends list</h1>
+}
+

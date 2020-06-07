@@ -35,14 +35,21 @@
             var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
             var id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
 
-
             @if (Model.Friends.Any(u => u.Id == id))
             {
-                <label>Friend</label>
+                <label>Friends</label>
             }
-            else if (!Model.RequestFriends.Any(u => u.UserId == id))
+            else if (!Model.FriendRequests.Any(u => u.UserId == id))
             {
-                <a href="@Url.Action("AddFriend", "Porfile", new { id = Model.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                if (((List<FriendRequest>)ViewData["MyFrienRequests"]).Any(u => u.UserId == Model.Id))
+                {
+                    FriendRequest friendRequest = ((List<FriendRequest>)ViewData["MyFrienRequests"]).Single(u => u.UserId == Model.Id);
+                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
+                }
+                else
+                {
+                    <a href="@Url.Action("AddFriend", "Porfile", new { id = Model.Id})" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                }
             }
             else
             {
@@ -63,7 +70,7 @@
                 @Html.DisplayFor(model => model.City)
             </dd>
             <dt class="col-sm-2">
-                @Html.DisplayNameFor(model => model.Friends)
+                <a href="@Url.Action("Details", "Friend", new { id = Model.Id})">Friends</a>
             </dt>
             <dd class="col-sm-10">
                 @Html.Label(@Model.Friends == null ? "0" : @Model.Friends.Count().ToString())

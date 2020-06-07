@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using Newtonsoft.Json;
 using SocialNetworkMiw.Models;
 
 namespace SocialNetworkMiw.Controllers
@@ -28,8 +24,7 @@ namespace SocialNetworkMiw.Controllers
         public ActionResult Index()
         {
             var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            string userId = HttpContext.Session.GetString("UserId");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + userId + "'")).Single();
+            var user = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
             List<NotificationViewModel> notificationViewModels = new List<NotificationViewModel>();
             user.FriendRequests.ForEach(u =>
             {
@@ -51,8 +46,7 @@ namespace SocialNetworkMiw.Controllers
         public ActionResult Accept(string idFrindRequest)
         {
             var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            string userId = HttpContext.Session.GetString("UserId");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + userId + "'")).Single();
+            var user = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
             if(user.FriendRequests.Any(u=>u.Id == idFrindRequest))
             {
                 FriendRequest request = user.FriendRequests.Single(u => u.Id == idFrindRequest);
@@ -74,8 +68,7 @@ namespace SocialNetworkMiw.Controllers
         public ActionResult Delete(string idFrindRequest)
         {
             var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            string userId = HttpContext.Session.GetString("UserId");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + userId + "'")).Single();
+            var user = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
             if (user.FriendRequests.Any(u => u.Id == idFrindRequest))
             {
                 FriendRequest request = user.FriendRequests.Single(u => u.Id == idFrindRequest);

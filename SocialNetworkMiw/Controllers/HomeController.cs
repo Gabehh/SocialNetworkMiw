@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -36,8 +32,7 @@ namespace SocialNetworkMiw.Controllers
             var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
             var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
             var user = collectionUser
-                .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                .Value + "'")).Single();
+                .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
             var filterPost = Builders<Post>.Filter.In(u => u.Id, user.Posts);
             return View(collectionPost.Find(filterPost).ToList());
         }
@@ -74,8 +69,7 @@ namespace SocialNetworkMiw.Controllers
                 };
                 await collectionPost.InsertOneAsync(post);
                 var currentUser = collectionUser
-                                .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                                .Value + "'")).Single();
+                                .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
                 currentUser.Posts.Add(post.Id);
                 collectionUser.ReplaceOne(x => x.Id == currentUser.Id, currentUser);
             }

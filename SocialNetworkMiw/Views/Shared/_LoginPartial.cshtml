@@ -3,8 +3,11 @@
     {
         var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
         <li class="nav-item">
-            <a class="nav-link text-dark" href="@Url.Action("Details", "Porfile", 
-            new { id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value})"  title="Manage">Hello @User.Identity.Name!</a>
+            <a class="nav-link text-dark" asp-controller="Notification" asp-action="Index">Notifications</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" href="@Url.Action("Details", "Porfile",
+            new { id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value})" title="Manage">Hello @User.Identity.Name!</a>
         </li>
         <li class="nav-item">
             <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a>
@@ -13,10 +16,10 @@
     else
     {
         <li class="nav-item">
-            <a class="nav-link text-dark"  asp-controller="Account" asp-action="Create">Register</a>
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Create">Register</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark"  asp-controller="Account" asp-action="Login">Login</a>
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
         </li>
     }
 </ul>

@@ -124,9 +124,10 @@ namespace SocialNetworkMiw.Controllers
                 new AuthenticationProperties
                 {
                     IsPersistent = true,
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(20),
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(3),
                 });
                 HttpContext.Session.SetString("UserId", user.Id);
+                HttpContext.Session.SetString("UserName", user.Name);
         }
 
         // GET: Account/Edit/5

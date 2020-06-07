@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -41,8 +37,7 @@ namespace SocialNetworkMiw.Controllers
                 return NotFound();
 
             var currentUser = collectionUsers
-                            .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                            .Value + "'")).Single();
+                            .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
 
             PorfileViewModel porfileViewModel = new PorfileViewModel();
 
@@ -66,7 +61,8 @@ namespace SocialNetworkMiw.Controllers
             porfileViewModel.Id = user.Id;
             porfileViewModel.ImageUrl = user.ImageUrl;
             porfileViewModel.Name = user.Name;
-            porfileViewModel.RequestFriends = user.FriendRequests;
+            porfileViewModel.FriendRequests = user.FriendRequests;
+            ViewData["MyFrienRequests"] = currentUser.FriendRequests;
             return View(porfileViewModel);
         }
 
@@ -79,11 +75,11 @@ namespace SocialNetworkMiw.Controllers
             FriendRequest requestFriend = new FriendRequest()
             {
                 DateTime = DateTime.Now,
-                UserId = User.FindFirst(ClaimTypes.NameIdentifier).Value
+                UserId = HttpContext.Session.GetString("UserId"),
             };
             var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
-            string idUser = User.FindFirst(ClaimTypes.NameIdentifier).Value;
-            if (user.FriendRequests.Any(u => u.UserId == idUser) || user.Friends.Any(u=>u== idUser))
+            if (user.FriendRequests.Any(u => u.UserId == HttpContext.Session.GetString("UserId")) 
+                    || user.Friends.Any(u=>u== HttpContext.Session.GetString("UserId")))
             {
                 return View("Error", new ErrorViewModel());
             }
@@ -127,12 +123,11 @@ namespace SocialNetworkMiw.Controllers
                 };
                 collectionPost.InsertOne(post);
                 var currentUser = collectionUser
-                                .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                                .Value + "'")).Single();
+                                .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
                 currentUser.Posts.Add(post.Id);
                 collectionUser.ReplaceOne(x => x.Id == currentUser.Id, currentUser);
             }
-            return RedirectToAction(nameof(Details), new { id = User.FindFirst(ClaimTypes.NameIdentifier).Value});
+            return RedirectToAction(nameof(Details), new { id = HttpContext.Session.GetString("UserId")});
 
         }
 
@@ -201,7 +196,7 @@ namespace SocialNetworkMiw.Controllers
                 {
                     DateTime = DateTime.Now,
                     Description = createCommentViewModel.Comment,
-                    User = User.FindFirst(ClaimTypes.Name).Value
+                    User = HttpContext.Session.GetString("UserName") 
                 };
                 if (post.Comments == null)
                     post.Comments = new List<Comment>()
