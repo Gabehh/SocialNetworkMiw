@@ -52,8 +52,11 @@ namespace SocialNetworkMiw.Controllers
             porfileViewModel.BornIn = user.BornIn;
             porfileViewModel.Email = user.Email;
             porfileViewModel.Job = user.Job;
-            var filterPost = Builders<Post>.Filter.In(u=>u.Id, user.Posts);
-            porfileViewModel.Posts = collectionPost.Find(filterPost).ToList();
+            porfileViewModel.Posts = collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList().Select(u=> new ShowPostViewModel()
+            {
+                UserName = user.Name,
+                Post = u
+            }).ToList();
             var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
             porfileViewModel.Friends = collectionUsers.Find(filterFriend).ToList();
             //porfileViewModel.Photos 
@@ -62,7 +65,7 @@ namespace SocialNetworkMiw.Controllers
             porfileViewModel.ImageUrl = user.ImageUrl;
             porfileViewModel.Name = user.Name;
             porfileViewModel.FriendRequests = user.FriendRequests;
-            ViewData["MyFrienRequests"] = currentUser.FriendRequests;
+            porfileViewModel.CurrentUserRequests = currentUser.FriendRequests;
             return View(porfileViewModel);
         }
 
@@ -115,17 +118,14 @@ namespace SocialNetworkMiw.Controllers
                     await createPostViewModel.FileUrl.CopyToAsync(stream);
                 }
                 var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-                var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
                 Post post = new Post()
                 {
+                    UserId = HttpContext.Session.GetString("UserId"),
                     FileUrl = "/Images/" + Path.GetFileName(path),
-                    Description = createPostViewModel.Description
+                    Description = createPostViewModel.Description,
+                    CreationDate = DateTime.Now
                 };
-                collectionPost.InsertOne(post);
-                var currentUser = collectionUser
-                                .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
-                currentUser.Posts.Add(post.Id);
-                collectionUser.ReplaceOne(x => x.Id == currentUser.Id, currentUser);
+                await collectionPost.InsertOneAsync(post);
             }
             return RedirectToAction(nameof(Details), new { id = HttpContext.Session.GetString("UserId")});
 

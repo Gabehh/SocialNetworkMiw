@@ -71,7 +71,6 @@ namespace SocialNetworkMiw.Controllers
                         Email = register.Email,
                         Password =  register.Password,
                         Friends = new List<string>(),
-                        Posts = new List<string>(),
                         FriendRequests = new List<FriendRequest>()
                     };
                     collection.InsertOne(user);

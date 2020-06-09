@@ -25,6 +25,13 @@ namespace SocialNetworkMiw.Models
         [BsonElement("Comments")]
         public List<Comment> Comments { get; set; }
 
+        [BsonElement("CreationDate")]
+        public DateTime CreationDate { get; set; }
+
+        [BsonRepresentation(BsonType.ObjectId)]
+        [BsonElement("UserId")]
+        public string UserId { get; set; }
+
         public string Type 
         { 
             get 

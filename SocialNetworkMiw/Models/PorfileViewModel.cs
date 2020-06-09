@@ -32,11 +32,13 @@ namespace SocialNetworkMiw.Models
 
         public string BornIn { get; set; }
 
-        public List<Post> Posts { get; set; }
+        public List<ShowPostViewModel> Posts { get; set; }
         
         public List<User> Friends { get; set; }
 
         public List<FriendRequest> FriendRequests { get; set; }
-        
+
+        public List<FriendRequest> CurrentUserRequests { get; set; }
+
     }
 }

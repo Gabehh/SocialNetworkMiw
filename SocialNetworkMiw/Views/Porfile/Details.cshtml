@@ -41,7 +41,7 @@
             }
             else if (!Model.FriendRequests.Any(u => u.UserId == id))
             {
-                if (((List<FriendRequest>)ViewData["MyFrienRequests"]).Any(u => u.UserId == Model.Id))
+                if (Model.CurrentUserRequests.Any(u => u.UserId == Model.Id))
                 {
                     FriendRequest friendRequest = ((List<FriendRequest>)ViewData["MyFrienRequests"]).Single(u => u.UserId == Model.Id);
                     <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
