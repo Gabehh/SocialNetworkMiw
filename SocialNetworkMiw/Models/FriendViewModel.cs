@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace SocialNetworkMiw.Models
 {
-    public class HomeViewModel
+    public class FriendViewModel
     {
-
-        public List<Post> Posts { get; set; }
+        public string name { get; set; }
+        public List<User> friends { get; set; } 
     }
 }

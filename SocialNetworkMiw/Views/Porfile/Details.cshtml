@@ -7,9 +7,9 @@
     <div class="col-md-4">
         <h4>@Model.Name</h4>
         <hr />
-        <dl class="row">
-            @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
-            {
+        @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
+        {
+            <dl class="row">
                 <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.Email)
                 </dt>
@@ -23,18 +23,46 @@
                     @Html.DisplayFor(model => model.BirthDate)
                 </dd>
                 <dt class="col-sm-2">
-                    @Html.DisplayNameFor(model => model.Job)
-                </dt>
-                <dd class="col-sm-10">
-                    @Html.DisplayFor(model => model.Job)
-                </dd>
-                <dt class="col-sm-2">
                     @Html.DisplayNameFor(model => model.BornIn)
                 </dt>
                 <dd class="col-sm-10">
                     @Html.DisplayFor(model => model.BornIn)
                 </dd>
+            </dl>
+        }
+        else
+        {
+            var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
+            var id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+
+            @if (Model.Friends.Any(u => u.Id == id))
+            {
+                <label>Friends</label>
             }
+            else if (!Model.FriendRequests.Any(u => u.UserId == id))
+            {
+                if (Model.CurrentUserRequests.Any(u => u.UserId == Model.Id))
+                {
+                    FriendRequest friendRequest = ((List<FriendRequest>)ViewData["MyFrienRequests"]).Single(u => u.UserId == Model.Id);
+                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
+                }
+                else
+                {
+                    <a href="@Url.Action("AddFriend", "Porfile", new { id = Model.Id})" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                }
+            }
+            else
+            {
+                <label>Friend Request Sent</label>
+            }
+        }
+        <dl class="row">
+            <dt class="col-sm-2">
+                @Html.DisplayNameFor(model => model.Job)
+            </dt>
+            <dd class="col-sm-10">
+                @Html.DisplayFor(model => model.Job)
+            </dd>
             <dt class="col-sm-2">
                 @Html.DisplayNameFor(model => model.City)
             </dt>
@@ -42,7 +70,7 @@
                 @Html.DisplayFor(model => model.City)
             </dd>
             <dt class="col-sm-2">
-                @Html.DisplayNameFor(model => model.Friends)
+                <a href="@Url.Action("Details", "Friend", new { id = Model.Id})">Friends</a>
             </dt>
             <dd class="col-sm-10">
                 @Html.Label(@Model.Friends == null ? "0" : @Model.Friends.Count().ToString())
@@ -59,6 +87,7 @@
             </div>
         }
         <div class="col-md-4">
+
         </div>
         <div class="col-md-6">
             @await Component.InvokeAsync("ShowPosts", Model.Posts)

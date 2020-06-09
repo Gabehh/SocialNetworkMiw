@@ -10,7 +10,7 @@ namespace SocialNetworkMiw.Views.ViewComponents
     public class ShowPostsViewComponent: ViewComponent
     {
 
-        public IViewComponentResult Invoke(List<Post> posts)
+        public IViewComponentResult Invoke(List<ShowPostViewModel> posts)
         {
             return View(posts);
         }

@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -41,8 +37,7 @@ namespace SocialNetworkMiw.Controllers
                 return NotFound();
 
             var currentUser = collectionUsers
-                            .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                            .Value + "'")).Single();
+                            .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
 
             PorfileViewModel porfileViewModel = new PorfileViewModel();
 
@@ -57,16 +52,50 @@ namespace SocialNetworkMiw.Controllers
             porfileViewModel.BornIn = user.BornIn;
             porfileViewModel.Email = user.Email;
             porfileViewModel.Job = user.Job;
-            var filterPost = Builders<Post>.Filter.In(u=>u.Id, user.Posts);
-            porfileViewModel.Posts = collectionPost.Find(filterPost).ToList();
+            porfileViewModel.Posts = collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList().Select(u=> new ShowPostViewModel()
+            {
+                UserName = user.Name,
+                Post = u
+            }).ToList();
+            var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
+            porfileViewModel.Friends = collectionUsers.Find(filterFriend).ToList();
             //porfileViewModel.Photos 
             porfileViewModel.City = user.City;
             porfileViewModel.Id = user.Id;
             porfileViewModel.ImageUrl = user.ImageUrl;
             porfileViewModel.Name = user.Name;
+            porfileViewModel.FriendRequests = user.FriendRequests;
+            porfileViewModel.CurrentUserRequests = currentUser.FriendRequests;
             return View(porfileViewModel);
         }
 
+
+
+
+        public ActionResult AddFriend(string id, string returnUrl)
+        {
+            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            FriendRequest requestFriend = new FriendRequest()
+            {
+                DateTime = DateTime.Now,
+                UserId = HttpContext.Session.GetString("UserId"),
+            };
+            var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+            if (user.FriendRequests.Any(u => u.UserId == HttpContext.Session.GetString("UserId")) 
+                    || user.Friends.Any(u=>u== HttpContext.Session.GetString("UserId")))
+            {
+                return View("Error", new ErrorViewModel());
+            }
+            else
+            {
+                user.FriendRequests.Add(requestFriend);
+                collection.ReplaceOne(x => x.Id == user.Id, user);
+                if (string.IsNullOrEmpty(returnUrl))
+                    return RedirectToAction(nameof(Details), new { id = user.Id });
+                else
+                    return Redirect(returnUrl);
+            }
+        }
 
 
         // GET: Porfile/Create
@@ -89,20 +118,16 @@ namespace SocialNetworkMiw.Controllers
                     await createPostViewModel.FileUrl.CopyToAsync(stream);
                 }
                 var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-                var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
                 Post post = new Post()
                 {
+                    UserId = HttpContext.Session.GetString("UserId"),
                     FileUrl = "/Images/" + Path.GetFileName(path),
-                    Description = createPostViewModel.Description
+                    Description = createPostViewModel.Description,
+                    CreationDate = DateTime.Now
                 };
-                collectionPost.InsertOne(post);
-                var currentUser = collectionUser
-                                .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                                .Value + "'")).Single();
-                currentUser.Posts.Add(post.Id);
-                collectionUser.ReplaceOne(x => x.Id == currentUser.Id, currentUser);
+                await collectionPost.InsertOneAsync(post);
             }
-            return RedirectToAction(nameof(Details), new { id = User.FindFirst(ClaimTypes.NameIdentifier).Value});
+            return RedirectToAction(nameof(Details), new { id = HttpContext.Session.GetString("UserId")});
 
         }
 
@@ -171,7 +196,7 @@ namespace SocialNetworkMiw.Controllers
                 {
                     DateTime = DateTime.Now,
                     Description = createCommentViewModel.Comment,
-                    User = User.FindFirst(ClaimTypes.Name).Value
+                    User = HttpContext.Session.GetString("UserName") 
                 };
                 if (post.Comments == null)
                     post.Comments = new List<Comment>()

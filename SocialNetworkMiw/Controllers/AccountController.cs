@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace SocialNetworkMiw.Controllers
 {
@@ -49,6 +50,7 @@ namespace SocialNetworkMiw.Controllers
 
         public async Task<ActionResult> Logout()
         {
+            HttpContext.Session.Clear();
             await HttpContext.SignOutAsync(
             CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Index","Home");
@@ -69,7 +71,7 @@ namespace SocialNetworkMiw.Controllers
                         Email = register.Email,
                         Password =  register.Password,
                         Friends = new List<string>(),
-                        Posts = new List<string>()
+                        FriendRequests = new List<FriendRequest>()
                     };
                     collection.InsertOne(user);
                     await SignIn(user);
@@ -108,11 +110,11 @@ namespace SocialNetworkMiw.Controllers
         private async Task SignIn(User user)
         {
             var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, user.Name),
-                        new Claim(ClaimTypes.NameIdentifier, user.Id),
-                        new Claim(ClaimTypes.Email, user.Email),
-                    };
+            {
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Email, user.Email),
+            };
             var claimsIdentity = new ClaimsIdentity(
                 claims, CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignInAsync(
@@ -121,8 +123,10 @@ namespace SocialNetworkMiw.Controllers
                 new AuthenticationProperties
                 {
                     IsPersistent = true,
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(20),
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(3),
                 });
+                HttpContext.Session.SetString("UserId", user.Id);
+                HttpContext.Session.SetString("UserName", user.Name);
         }
 
         // GET: Account/Edit/5

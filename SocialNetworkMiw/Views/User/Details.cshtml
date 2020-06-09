@@ -1,0 +1,44 @@
+﻿@model List<User>
+
+@{ 
+    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
+    var id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+}
+
+
+@if (!Model.Any() || (Model.Count == 1 && Model[0].Id == id))
+{
+    <h1>Users not found</h1>
+}
+
+@foreach (var item in Model)
+{
+    @if (item.Id != id)
+    {
+        <div class="jumbotron">
+            <a class="nav-link text-dark" href="@Url.Action("Details", "Porfile",new { id = item.Id})">@item.Name</a>
+            <p>@item.City</p>
+            @if (item.Friends.Any(u => u == id))
+            {
+                <label>Friends</label>
+            }
+            else if (!item.FriendRequests.Any(u => u.UserId == id))
+            {
+                if (((List<FriendRequest>)ViewData["MyFrienRequests"]).Any(u => u.UserId == item.Id))
+                {         
+                    FriendRequest friendRequest = ((List<FriendRequest>)ViewData["MyFrienRequests"]).Single(u=>u.UserId == item.Id);
+                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
+                }
+                else
+                {
+                    <a href="@Url.Action("AddFriend", "Porfile", new { id = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                }
+            }
+            else
+            {
+                <label>Friend Request Sent</label>
+            }
+        </div>
+    }    
+}
+

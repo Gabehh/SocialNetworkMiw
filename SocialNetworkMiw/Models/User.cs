@@ -40,10 +40,10 @@ namespace SocialNetworkMiw.Models
         [BsonElement("BornIn")]
         public string BornIn { get; set; }
 
-        [BsonElement("Posts")]
-        public List<string> Posts { get; set; }
-
         [BsonElement("Friends")]
         public List<string> Friends { get; set; }
+
+        [BsonElement("FriendRequests")]
+        public List<FriendRequest> FriendRequests { get; set; }
     }
 }

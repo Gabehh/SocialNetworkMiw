@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
@@ -35,15 +32,18 @@ namespace SocialNetworkMiw.Controllers
         {
             var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
             var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var user = collectionUser
-                .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                .Value + "'")).Single();
-            var filterPost = Builders<Post>.Filter.In(u => u.Id, user.Posts);
-            HomeViewModel homeViewModel = new HomeViewModel()
-            {
-                Posts = collectionPost.Find(filterPost).ToList()
-            };
-            return View(homeViewModel);
+            var users = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().Friends;
+            users.Add(HttpContext.Session.GetString("UserId"));
+            var data = (from user in collectionUser.AsQueryable() join post in collectionPost.AsQueryable()
+                       on user.Id equals post.UserId
+                       where users.Contains(post.UserId)
+                       orderby post.CreationDate descending
+                       select new ShowPostViewModel
+                       {
+                          Post = post,
+                          UserName = user.Name
+                       }).Take(50);
+            return View(data.ToList());
         }
 
         public IActionResult Privacy()
@@ -70,18 +70,14 @@ namespace SocialNetworkMiw.Controllers
                     await createPostViewModel.FileUrl.CopyToAsync(stream);
                 }
                 var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-                var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
                 Post post = new Post()
                 {
+                    UserId = HttpContext.Session.GetString("UserId"),
                     FileUrl = "/Images/" + Path.GetFileName(path),
-                    Description = createPostViewModel.Description
+                    Description = createPostViewModel.Description,
+                    CreationDate = DateTime.Now
                 };
                 await collectionPost.InsertOneAsync(post);
-                var currentUser = collectionUser
-                                .Find(new BsonDocument("$where", "this._id == '" + User.FindFirst(ClaimTypes.NameIdentifier)
-                                .Value + "'")).Single();
-                currentUser.Posts.Add(post.Id);
-                collectionUser.ReplaceOne(x => x.Id == currentUser.Id, currentUser);
             }
             return RedirectToAction(nameof(Index));
 
