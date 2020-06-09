@@ -1,30 +1,32 @@
-﻿@model List<Post>
+﻿@model List<ShowPostViewModel>
 @foreach (var post in Model)
 {
-    <label class="control-label"><strong>@post.Description</strong></label>
-    if (@post.Type == "image")
+    <a href="@Url.Action("Details", "Porfile",new { id = post.Post.UserId})">@post.UserName</a>
+    <br />
+    <label class="control-label"><strong>@post.Post.Description</strong></label>
+    <br />
+    if (@post.Post.Type == "image")
     {
-        <img src="@Url.Content(post.FileUrl)" style="width:600px;height:600px" />
+        <img src="@Url.Content(post.Post.FileUrl)" style="width:600px;height:600px" />
     }
     else
     {
-        <br />
-        <iframe src="@Url.Content(post.FileUrl)"></iframe>
+        <iframe src="@Url.Content(post.Post.FileUrl)"></iframe>
     }
     <br />
     <br />
     <div id="accordion">
         <div class="card">
             <div class="card-header">
-                <button class="btn btn-link" data-toggle="collapse" data-target="#collapse-@post.Id" aria-expanded="true">
+                <button class="btn btn-link" data-toggle="collapse" data-target="#collapse-@post.Post.Id" aria-expanded="true">
                     Write a comment
                 </button>
-                <div id="collapse-@post.Id" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                <div id="collapse-@post.Post.Id" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
                     <div class="card-body">
-                        <div id="@post.Id">
-                            @if (post.Comments != null)
+                        <div id="@post.Post.Id">
+                            @if (post.Post.Comments != null)
                             {
-                                @foreach (var comment in post.Comments)
+                                @foreach (var comment in post.Post.Comments)
                                 {
                                     <label class="control-label"> @comment.User (@comment.DateTime) said: @comment.Description </label><br />
                                 }
@@ -32,10 +34,10 @@
                         </div>
                         <form>
                             <div class="form-group">
-                                <input placeholder="Write a comment" class="form-control @post.Id" />
+                                <input placeholder="Write a comment" class="form-control @post.Post.Id" />
                             </div>
                             <div class="form-group">
-                                <input type="button" value="Send" onclick="WriteComment('@post.Id',$('.@post.Id').val())" class="btn btn-primary" />
+                                <input type="button" value="Send" onclick="WriteComment('@post.Post.Id',$('.@post.Post.Id').val())" class="btn btn-primary" />
                             </div>
                         </form>
                     </div>
