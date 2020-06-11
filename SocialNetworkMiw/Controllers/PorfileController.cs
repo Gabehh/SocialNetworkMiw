@@ -163,7 +163,7 @@ namespace SocialNetworkMiw.Controllers
         [HttpPost]
         public ActionResult Edit(string id, EditPorfileViewModel user)
         {
-            if (id != user.Id)
+            if (id != user.Id && id != HttpContext.Session.GetString("UserId"))
             {
                 return NotFound();
             }
@@ -228,7 +228,8 @@ namespace SocialNetworkMiw.Controllers
                 {
                     DateTime = DateTime.Now,
                     Description = createCommentViewModel.Comment,
-                    User = HttpContext.Session.GetString("UserName") 
+                    UserName = HttpContext.Session.GetString("UserName"),
+                    UserId = HttpContext.Session.GetString("UserId"),
                 };
                 if (post.Comments == null)
                     post.Comments = new List<Comment>()
@@ -241,7 +242,37 @@ namespace SocialNetworkMiw.Controllers
                 return Json(new
                 {
                     isValid = true,
-                    comment
+                    comment,
+                    postId = post.Id
+                });
+            }
+            catch
+            {
+                return Json(new
+                {
+                    isValid = false
+                });
+            }
+        }
+
+
+        [HttpPost]
+        public JsonResult DeleteComment([FromBody] DeleteCommentViewModel deleteCommentViewModel)
+        {
+            try
+            { 
+                var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+                var post = collectionPost
+                           .Find(new BsonDocument("$where", "this._id == '" + deleteCommentViewModel.PostId + "'")).Single();
+                Comment comment = post.Comments.Single(u => u.Id == deleteCommentViewModel.CommentId);
+                if (post.UserId == deleteCommentViewModel.UserId || deleteCommentViewModel.UserId == comment.UserId)
+                {
+                    post.Comments.Remove(comment);
+                }
+                collectionPost.ReplaceOne(x => x.Id == post.Id, post);
+                return Json(new
+                {
+                    isValid = true,
                 });
             }
             catch
