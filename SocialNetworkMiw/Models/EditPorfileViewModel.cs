@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -14,8 +15,10 @@ namespace SocialNetworkMiw.Models
         [Display(Name = "Name")]
         public string Name { get; set; }
 
-        [Display(Name = "ImageUrl")]
-        public string ImageUrl { get; set; }
+        [Display(Name = "Image")]
+        [DataType(DataType.Upload)]
+        [Required]
+        public IFormFile ImageUrl { get; set; }
 
         [Display(Name = "BirthDate")]
         public DateTime BirthDate { get; set; }
