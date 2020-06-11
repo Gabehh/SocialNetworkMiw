@@ -13,8 +13,11 @@ namespace SocialNetworkMiw.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
-        [BsonElement("User")]
-        public string User { get; set; }
+        [BsonElement("UserName")]
+        public string UserName { get; set; }
+
+        [BsonElement("UserId")]
+        public string UserId { get; set; }
 
         [BsonElement("Description")]
         public string Description { get; set; }

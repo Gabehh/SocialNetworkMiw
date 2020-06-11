@@ -1,4 +1,8 @@
 ﻿@model List<ShowPostViewModel>
+@{
+    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
+    var userId = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+}
 @foreach (var post in Model)
 {
     <a href="@Url.Action("Details", "Porfile",new { id = post.Post.UserId})">@post.UserName</a>
@@ -28,7 +32,16 @@
                             {
                                 @foreach (var comment in post.Post.Comments)
                                 {
-                                    <label class="control-label"> @comment.User (@comment.DateTime) said: @comment.Description </label><br />
+                                    <div id="@comment.Id">
+                                        @if (post.Post.UserId == userId || comment.UserId == userId)
+                                        {
+                                            <img onclick="DeleteComment('@post.Post.Id','@comment.Id','@userId')" style="width:20px;height:20px;" src="~/images/icons/trash.png" />
+                                        }
+                                        <label class="control-label">
+                                            @comment.UserName (@comment.DateTime) said: @comment.Description
+                                        </label>
+                                        <br />
+                                    </div>
                                 }
                             }
                         </div>
