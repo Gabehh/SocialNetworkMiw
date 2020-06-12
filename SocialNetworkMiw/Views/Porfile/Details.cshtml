@@ -3,36 +3,62 @@
 @{
     ViewData["Title"] = Model.Name;
 }
-    <div class="row">
-        <div class="col-md-4">
-            <h4>@Model.Name</h4>
-            @if (Model.Porfile == TypePorfile.Porfile.User)
-            {
-                <a href="@Url.Action("Edit", "Porfile", new { id = Model.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Editar</a>
-            }
-            <hr />
+<div class="row">
+    <div class="col-md-4">
+        <img src="@Url.Content(Model.ImageUrl)" style="width:100px;height:100px" />
+        @if (Model.Porfile == TypePorfile.Porfile.User)
+        {
+            <a href="@Url.Action("Edit", "Porfile", new { id = Model.Id })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Edit</a>
+        }
+        else if (Model.Porfile == TypePorfile.Porfile.Friend)
+        {
+            <button type="button" style="float:right" class="btn btn-danger" data-toggle="modal" data-target="#exampleModal">
+                Delete
+            </button>
+        }
+        <hr />
+        <dl class="row">
+            <dt class="col-sm-12" style="color:steelblue">
+                @Html.DisplayFor(model => model.Name)
+            </dt>
+            <dt class="col-sm-3">
+                @Html.DisplayNameFor(model => model.Job)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.Job)
+            </dd>
+            <dt class="col-sm-3">
+                @Html.DisplayNameFor(model => model.City)
+            </dt>
+            <dd class="col-sm-9">
+                @Html.DisplayFor(model => model.City)
+            </dd>
+            <dt class="col-sm-3">
+                @Html.Label("Friends")
+            </dt>
+            <dd class="col-sm-9">
+                @Html.ActionLink(@Model.Friends == null ? "0" : @Model.Friends.Count().ToString(), "Details", "Friend", new { id = Model.Id })
+            </dd>
             @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
             {
-                <dl class="row">
-                    <dt class="col-sm-2">
-                        @Html.DisplayNameFor(model => model.Email)
-                    </dt>
-                    <dd class="col-sm-10">
-                        @Html.DisplayFor(model => model.Email)
-                    </dd>
-                    <dt class="col-sm-2">
-                        @Html.DisplayNameFor(model => model.BirthDate)
-                    </dt>
-                    <dd class="col-sm-10">
-                        @Html.DisplayFor(model => model.BirthDate)
-                    </dd>
-                    <dt class="col-sm-2">
-                        @Html.DisplayNameFor(model => model.BornIn)
-                    </dt>
-                    <dd class="col-sm-10">
-                        @Html.DisplayFor(model => model.BornIn)
-                    </dd>
-                </dl>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Email)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Email)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.BirthDate)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.BirthDate)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.BornIn)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.BornIn)
+                </dd>
             }
             else
             {
@@ -41,66 +67,70 @@
 
                 @if (Model.Friends.Any(u => u.Id == id))
                 {
-                    <label>Friends</label>
+                    <dd class="col-sm-10">
+                        <label>Friends</label>
+                    </dd>
                 }
                 else if (!Model.FriendRequests.Any(u => u.UserId == id))
                 {
                     if (Model.CurrentUserRequests.Any(u => u.UserId == Model.Id))
                     {
-                        FriendRequest friendRequest = ((List<FriendRequest>)ViewData["MyFrienRequests"]).Single(u => u.UserId == Model.Id);
-                        <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
+                        FriendRequest friendRequest = Model.CurrentUserRequests.Single(u => u.UserId == Model.Id);
+                        <dd class="col-sm-10">
+                            <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
+                        </dd>
                     }
                     else
                     {
-                        <a href="@Url.Action("AddFriend", "Porfile", new { id = Model.Id})" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                        <dd class="col-sm-10">
+                            <a href="@Url.Action("AddFriend", "Porfile", new { id = Model.Id })" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                        </dd>
+
                     }
                 }
                 else
                 {
-                    <label>Friend Request Sent</label>
+                    <dd class="col-sm-10">
+                        <label>Friend Request Sent</label>
+                    </dd>
                 }
             }
-            <dl class="row">
-                <dt class="col-sm-2">
-                    @Html.DisplayNameFor(model => model.Job)
-                </dt>
-                <dd class="col-sm-10">
-                    @Html.DisplayFor(model => model.Job)
-                </dd>
-                <dt class="col-sm-2">
-                    @Html.DisplayNameFor(model => model.City)
-                </dt>
-                <dd class="col-sm-10">
-                    @Html.DisplayFor(model => model.City)
-                </dd>
-                <dt class="col-sm-2">
-                    <a href="@Url.Action("Details", "Friend", new { id = Model.Id})">Friends</a>
-                </dt>
-                <dd class="col-sm-10">
-                    @Html.Label(@Model.Friends == null ? "0" : @Model.Friends.Count().ToString())
-                </dd>
-            </dl>
-        </div>
-
-        @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
-        {
-            if (Model.Porfile == TypePorfile.Porfile.User)
-            {
-                <div class="col-md-6">                  
-                    @await Component.InvokeAsync("CreatePost")
-                </div>
-            }
-            <div class="col-md-4">
-
-            </div>
-            <div class="col-md-6">
-                @await Component.InvokeAsync("ShowPosts", Model.Posts)
-            </div>
-        }
-
+        </dl>
+        <hr />
     </div>
+
+    @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
+    {
+        <div class="col-md-6">
+            @if (Model.Porfile == TypePorfile.Porfile.User)
+            {
+                @await Component.InvokeAsync("CreatePost")
+            }
+
+            @await Component.InvokeAsync("ShowPosts", Model.Posts)
+        </div>
+    }
+
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script src="~/js/comment.js"></script>
 }
+
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete Friend</h5>
+            </div>
+            <div class="modal-body">
+                Do you want to delete this friend ?
+            </div>
+            <div class="modal-footer">
+                <a href="@Url.Action("DeleteFriend", "Friend", new { friendId = Model.Id  ,  returnUrl = Context.Request.Path + Context.Request.QueryString})" style="float:right" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete Friend</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -6,6 +6,11 @@
 @foreach (var post in Model)
 {
     <a href="@Url.Action("Details", "Porfile",new { id = post.Post.UserId})">@post.UserName</a>
+
+    if (post.Post.UserId == userId)
+    {
+        <a href="@Url.Action("DeletePost", "Porfile", new { postId = post.Post.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete</a>
+    }
     <br />
     <label class="control-label"><strong>@post.Post.Description</strong></label>
     <br />
@@ -58,4 +63,5 @@
             </div>
         </div>
     </div>
+    <br />
 }

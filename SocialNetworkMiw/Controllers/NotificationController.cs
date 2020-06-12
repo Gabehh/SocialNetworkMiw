@@ -66,7 +66,6 @@ namespace SocialNetworkMiw.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
         public ActionResult Delete(string idFrindRequest)
         {
             var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");

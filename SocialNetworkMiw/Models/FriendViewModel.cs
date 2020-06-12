@@ -7,7 +7,13 @@ namespace SocialNetworkMiw.Models
 {
     public class FriendViewModel
     {
-        public string name { get; set; }
+        public string description { get; set; }
+        public string userId { get; set; }
         public List<User> friends { get; set; } 
+
+        public FriendViewModel()
+        {
+            friends = new List<User>();
+        }
     }
 }

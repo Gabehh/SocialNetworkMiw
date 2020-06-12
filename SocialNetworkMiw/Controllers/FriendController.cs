@@ -39,26 +39,19 @@ namespace SocialNetworkMiw.Controllers
             if (id == currentUser.Id)
             {            
                 friendViewModel.friends = collection.Find(Builders<User>.Filter.In(u => u.Id, currentUser.Friends)).ToList();
-                friendViewModel.name = "Your Friends";
+                friendViewModel.description = "Your Friends";
             }
             else if(currentUser.Friends.Any(u => u == id))
             {
                 var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single(); 
                 friendViewModel.friends = collection.Find(Builders<User>.Filter.In(u => u.Id, user.Friends)).ToList(); 
-                friendViewModel.name = String.Concat(user.Name,"'s"," friends");
+                friendViewModel.description = String.Concat(user.Name,"'s"," friends");
             }
-
-
-
-
-
-            //var currentUser = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
-            //if (HttpContext.Session.GetString("UserId") == id || currentUser.Friends.Any(u => u == id))
-            //{
-            //    var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
-            //    var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
-            //    return View(collection.Find(filterFriend).ToList());
-            //}
+            else
+            {
+                friendViewModel.description = "You can't see the friends list";
+            }
+            friendViewModel.userId = id;
             return View(friendViewModel);
         }
 
@@ -108,20 +101,23 @@ namespace SocialNetworkMiw.Controllers
             return View();
         }
 
-        // POST: Friend/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add delete logic here
 
-                return RedirectToAction(nameof(Index));
-            }
-            catch
+        public ActionResult DeleteFriend(string friendId, string returnUrl)
+        {
+            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            var user = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+            var friend = collection.Find(new BsonDocument("$where", "this._id == '" + friendId + "'")).Single();
+            if (user.Friends.Any(u => u == friend.Id) && friend.Friends.Any(u => u == user.Id))
             {
-                return View();
+                user.Friends.Remove(friendId);
+                friend.Friends.Remove(user.Id);
+                collection.ReplaceOne(u => u.Id == user.Id, user);
+                collection.ReplaceOne(u => u.Id == friend.Id, friend);
+                return Redirect(returnUrl);
+            }
+            else
+            {
+                return View("Error", new ErrorViewModel());
             }
         }
     }
