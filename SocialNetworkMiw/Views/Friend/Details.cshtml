@@ -1,20 +1,37 @@
 ﻿@model FriendViewModel
 
 
+@{
+    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
+    var id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+}
 
-@if (Model.friends != null)
+
+<h1>@Model.description</h1>
+@foreach (var item in Model.friends)
 {
-    <h1>@Model.name</h1>
-    @foreach (var item in Model.friends)
-    {
-        <div class="jumbotron">
-            <a class="nav-link text-dark" href="@Url.Action("Details", "Porfile", new { id = item.Id })">@item.Name</a>
-            <p>@item.City</p>
+<div class="jumbotron">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="@Url.Content(item.ImageUrl)" style="width:300px;height:300px" />
         </div>
+        <div class="col-md-6">
+            @Html.ActionLink(item.Name, "Details", "Porfile", new { id = item.Id }, new { @class = "display-4" })
+            @{
+                var countFriends = item.Friends == null ? "0" : item.Friends.Count().ToString();
+            }
+            <p class="lead">City: @item.City</p>
+            <p class="lead">Job: @item.Job</p>
+            <p class="lead">Friends: @countFriends</p>
+            <p class="lead">From: @item.BornIn</p>
+            <p class="lead">Email: @item.Email</p>
+            <p class="lead">BirthDate: @item.BirthDate</p>
+        </div>
+    </div>
+    @if (id == Model.userId)
+    {
+        <hr>
+        <a href="@Url.Action("DeleteFriend", "Friend", new { friendId = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Delete Friend</a>
     }
+</div>
 }
-else
-{
-    <h1>You can't see the friends list</h1>
-}
-

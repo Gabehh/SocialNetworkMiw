@@ -8,7 +8,13 @@
         <img src="@Url.Content(Model.ImageUrl)" style="width:100px;height:100px" />
         @if (Model.Porfile == TypePorfile.Porfile.User)
         {
-            <a href="@Url.Action("Edit", "Porfile", new { id = Model.Id })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Editar</a>
+            <a href="@Url.Action("Edit", "Porfile", new { id = Model.Id })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Edit</a>
+        }
+        else if (Model.Porfile == TypePorfile.Porfile.Friend)
+        {
+            <button type="button" style="float:right" class="btn btn-danger" data-toggle="modal" data-target="#exampleModal">
+                Delete
+            </button>
         }
         <hr />
         <dl class="row">
@@ -111,3 +117,20 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script src="~/js/comment.js"></script>
 }
+
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Delete Friend</h5>
+            </div>
+            <div class="modal-body">
+                Do you want to delete this friend ?
+            </div>
+            <div class="modal-footer">
+                <a href="@Url.Action("DeleteFriend", "Friend", new { friendId = Model.Id  ,  returnUrl = Context.Request.Path + Context.Request.QueryString})" style="float:right" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete Friend</a>
+            </div>
+        </div>
+    </div>
+</div>

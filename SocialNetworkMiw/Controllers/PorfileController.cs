@@ -199,8 +199,7 @@ namespace SocialNetworkMiw.Controllers
 
         // POST: Porfile/Delete/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(string id)
         {
             try
             {
@@ -261,6 +260,8 @@ namespace SocialNetworkMiw.Controllers
         }
 
 
+
+
         [HttpPost]
         public JsonResult DeleteComment([FromBody] DeleteCommentViewModel deleteCommentViewModel)
         {
@@ -286,6 +287,22 @@ namespace SocialNetworkMiw.Controllers
                 {
                     isValid = false
                 });
+            }
+        }
+
+
+        public ActionResult DeletePost(string postId, string returnUrl)
+        {
+            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+            var post = collectionPost.Find(new BsonDocument("$where", "this._id == '" + postId + "'")).Single();
+            if (post.UserId == HttpContext.Session.GetString("UserId"))
+            {
+                collectionPost.DeleteOne(u => u.Id == post.Id);
+                return Redirect(returnUrl);
+            }
+            else
+            {
+                return View("Error", new ErrorViewModel());
             }
         }
     }
