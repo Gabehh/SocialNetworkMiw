@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace SocialNetworkMiw.Models
 {
+
     public class RegisterViewModel
     {
         [Required]
@@ -26,6 +27,18 @@ namespace SocialNetworkMiw.Models
         [Display(Name = "Repeat Password")]
         [Compare("Password", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; }
+    }
+
+    public class LoginViewModel
+    {
+        [Required]
+        [Display(Name = "Email")]
+        public string Email { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; }
     }
     
 }

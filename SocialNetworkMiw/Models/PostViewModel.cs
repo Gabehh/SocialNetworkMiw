@@ -7,6 +7,11 @@ using System.Threading.Tasks;
 
 namespace SocialNetworkMiw.Models
 {
+    public class ShowPostViewModel
+    {
+        public Post Post { get; set; }
+        public string UserName { get; set; }
+    }
     public class CreatePostViewModel
     {
         [Display(Name = "File")]
@@ -18,5 +23,18 @@ namespace SocialNetworkMiw.Models
         [DataType(DataType.MultilineText)]
         [Required]
         public string Description { get; set; }
+    }
+
+    public class CreateCommentViewModel
+    {
+        public string IdPost { get; set; }
+        public string Comment { get; set; }
+    }
+
+    public class DeleteCommentViewModel
+    {
+        public string PostId { get; set; }
+        public string CommentId { get; set; }
+        public string UserId { get; set; }
     }
 }

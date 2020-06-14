@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace SocialNetworkMiw.Models
 {
-    public class CreateCommentViewModel
+    public class UserViewModel
     {
-        public string IdPost { get; set; }
-        public string Comment { get; set; }
+        public List<User> Users { get; set; } 
+        public List<FriendRequest> CurrentUserRequests { get; set; }
     }
 }

@@ -28,7 +28,7 @@
                 @Html.DisplayFor(modelItem => item.DateTime)
             </td>
             <td>
-                @Html.ActionLink("Accept", "Accept", new { idFrindRequest = item.FriendRequestId }) |
+                @Html.ActionLink("Accept", "Accept", new { idFrindRequest = item.FriendRequestId, returnUrl = Context.Request.Path + Context.Request.QueryString }) |
                 @Html.ActionLink("Delete", "Delete", new { idFrindRequest = item.FriendRequestId })
             </td>
         </tr>

@@ -14,15 +14,16 @@
     <br />
     <label class="control-label"><strong>@post.Post.Description</strong></label>
     <br />
-    if (@post.Post.Type == "image")
-    {
-        <img src="@Url.Content(post.Post.FileUrl)" style="width:600px;height:600px" />
-    }
-    else
-    {
-        <iframe src="@Url.Content(post.Post.FileUrl)"></iframe>
-    }
-    <br />
+    <div>
+        @if (@post.Post.Type == "image")
+        {
+            <img src="@Url.Content(post.Post.FileUrl)" class="img-fluid" />
+        }
+        else
+        {
+            <iframe src="@Url.Content(post.Post.FileUrl)"></iframe>
+        }
+    </div>
     <br />
     <div id="accordion">
         <div class="card">

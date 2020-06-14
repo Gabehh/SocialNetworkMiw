@@ -18,10 +18,12 @@ namespace SocialNetworkMiw.Controllers
     public class AccountController : Controller
     {
         private readonly MongoClient mongoClient;
+        private readonly IMongoCollection<User> collectionUser;
 
         public AccountController(IConfiguration configuration)
         {
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
+            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
         }
 
         // GET: Account
@@ -62,8 +64,7 @@ namespace SocialNetworkMiw.Controllers
         {
             if (ModelState.IsValid)
             {
-                var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-                if(!collection.Find(new BsonDocument("$where", "this.Email == '" + register.Email + "'")).Any())
+                if(!collectionUser.Find(new BsonDocument("$where", "this.Email == '" + register.Email + "'")).Any())
                 {
                     User user = new User()
                     {
@@ -73,7 +74,7 @@ namespace SocialNetworkMiw.Controllers
                         Friends = new List<string>(),
                         FriendRequests = new List<FriendRequest>()
                     };
-                    collection.InsertOne(user);
+                    collectionUser.InsertOne(user);
                     await SignIn(user);
                     return RedirectToAction("Index", "Home");
                 }
@@ -92,8 +93,7 @@ namespace SocialNetworkMiw.Controllers
                 return View(model);
             }
 
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var user = collection.Find(new BsonDocument("$where", "this.Email == '" + model.Email + "' && this.Password =='" + model.Password+"'")).FirstOrDefault();
+            var user = collectionUser.Find(new BsonDocument("$where", "this.Email == '" + model.Email + "' && this.Password =='" + model.Password+"'")).FirstOrDefault();
 
             if (user != null)
             {

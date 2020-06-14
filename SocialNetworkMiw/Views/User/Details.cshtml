@@ -1,4 +1,4 @@
-﻿@model List<User>
+﻿@model UserViewModel
 
 @{
     var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
@@ -10,12 +10,12 @@
     ViewData["Title"] = "Users";
 }
 
-@if (!Model.Any() || (Model.Count == 1 && Model[0].Id == id))
+@if (!Model.Users.Any() || (Model.Users.Count == 1 && Model.Users[0].Id == id))
 {
     <h1>Users not found</h1>
 }
 
-@foreach (var item in Model)
+@foreach (var item in Model.Users)
 {
     @if (item.Id != id)
     {
@@ -41,14 +41,14 @@
             }
             else if (!item.FriendRequests.Any(u => u.UserId == id))
             {
-                if (((List<FriendRequest>)ViewData["MyFrienRequests"]).Any(u => u.UserId == item.Id))
+                if (Model.CurrentUserRequests.Any(u => u.UserId == item.Id))
                 {
-                    FriendRequest friendRequest = ((List<FriendRequest>)ViewData["MyFrienRequests"]).Single(u => u.UserId == item.Id);
-                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
+                    FriendRequest friendRequest = Model.CurrentUserRequests.Single(u => u.UserId == item.Id);
+                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
                 }
                 else
                 {
-                    <a href="@Url.Action("AddFriend", "Porfile", new { id = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                    <a href="@Url.Action("AddFriend", "Friend", new { id = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
                 }
             }
             else
