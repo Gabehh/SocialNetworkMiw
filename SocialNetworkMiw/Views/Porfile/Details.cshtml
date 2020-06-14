@@ -97,6 +97,43 @@
             }
         </dl>
         <hr />
+        @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
+        {
+            if (Model.Posts.Any())
+            {
+                <dl class="row">
+                    <dt class="col-sm-12" style="color:steelblue">
+                        <a href="@Url.Action("Photos", "Porfile", new { id = Model.Id })">
+                            <p>Photos</p>
+                        </a>
+                    </dt>
+                </dl>
+                <div class="row">
+                    @foreach (var post in Model.Posts.Take(9))
+                    {
+                        if (@post.Post.Type == "image")
+                        {
+                            <a href="@Url.Content(post.Post.FileUrl)"><img src="@Url.Content(post.Post.FileUrl)" style="width:100px;height:100px;margin:10px" /></a>
+                        }
+                    }
+                </div>
+                <hr />
+            }
+            <dl class="row">
+                <dt class="col-sm-12" style="color:steelblue">
+                    <a href="@Url.Action("Details", "Friend", new { id = Model.Id })">
+                        <p>Friends</p>
+                    </a>
+                </dt>
+            </dl>
+            <div class="row">
+                @foreach (var friend in Model.Friends.Take(9))
+                {
+                    <a href="@Url.Action("Details", "Porfile", new { id = friend.Id })"><img src="@Url.Content(friend.ImageUrl)" style="width:100px;height:100px;margin:10px" /></a>
+                }
+            </div>
+            <hr />
+        }
     </div>
 
     @if (!(Model.Porfile == TypePorfile.Porfile.Unknown))
