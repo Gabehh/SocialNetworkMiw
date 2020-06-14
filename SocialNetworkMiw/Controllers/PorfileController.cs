@@ -305,5 +305,21 @@ namespace SocialNetworkMiw.Controllers
                 return View("Error", new ErrorViewModel());
             }
         }
+
+
+        public ActionResult Photos(string id)
+        {
+            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+            var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            if (id == HttpContext.Session.GetString("UserId") || 
+                collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().Friends.Any(u=>u==id))
+            {
+                return View(collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList());
+            }
+            else
+            {
+                return View("Error", new ErrorViewModel());
+            }
+        }
     }
 }
