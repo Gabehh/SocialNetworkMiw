@@ -1,5 +1,5 @@
 ﻿function WriteComment(post, comment) {
-    var url = '/Porfile/WriteComment';
+    var url = '/Home/WriteComment';
     fetch(url, {
         method: 'POST',
         body: JSON.stringify({ IdPost: post, Comment: comment }),
@@ -28,7 +28,7 @@
 
 
 function DeleteComment(post, comment, user) {
-    var url = '/Porfile/DeleteComment';
+    var url = '/Home/DeleteComment';
     fetch(url, {
         method: 'POST',
         body: JSON.stringify({ PostId: post, CommentId: comment, UserId: user }),

@@ -17,10 +17,14 @@ namespace SocialNetworkMiw.Controllers
     public class PorfileController : Controller
     {
         private readonly MongoClient mongoClient;
+        private readonly IMongoCollection<User> collectionUser;
+        private readonly IMongoCollection<Post> collectionPost;
 
         public PorfileController(IConfiguration configuration)
         {
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
+            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
         }
 
         // GET: Porfile/Details/5
@@ -29,17 +33,15 @@ namespace SocialNetworkMiw.Controllers
             if (string.IsNullOrEmpty(id))
                 return NotFound();
 
-            var collectionUsers = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-            var user = collectionUsers.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
 
             if (user == null)
                 return NotFound();
 
-            var currentUser = collectionUsers
+            var currentUser = collectionUser
                             .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
 
-            PorfileViewModel porfileViewModel = new PorfileViewModel();
+            PorfileDetailsViewModel porfileViewModel = new PorfileDetailsViewModel();
 
             if (currentUser.Id == id)
                 porfileViewModel.Porfile = TypePorfile.Porfile.User;
@@ -58,8 +60,7 @@ namespace SocialNetworkMiw.Controllers
                 Post = u
             }).ToList();
             var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
-            porfileViewModel.Friends = collectionUsers.Find(filterFriend).ToList();
-            //porfileViewModel.Photos 
+            porfileViewModel.Friends = collectionUser.Find(filterFriend).ToList();
             porfileViewModel.City = user.City;
             porfileViewModel.Id = user.Id;
             porfileViewModel.ImageUrl = user.ImageUrl;
@@ -69,44 +70,6 @@ namespace SocialNetworkMiw.Controllers
             return View(porfileViewModel);
         }
 
-
-
-
-        public ActionResult AddFriend(string id, string returnUrl)
-        {
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            FriendRequest requestFriend = new FriendRequest()
-            {
-                DateTime = DateTime.Now,
-                UserId = HttpContext.Session.GetString("UserId"),
-            };
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
-            if (user.FriendRequests.Any(u => u.UserId == HttpContext.Session.GetString("UserId"))
-                    || user.Friends.Any(u => u == HttpContext.Session.GetString("UserId")))
-            {
-                return View("Error", new ErrorViewModel());
-            }
-            else
-            {
-                user.FriendRequests.Add(requestFriend);
-                collection.ReplaceOne(x => x.Id == user.Id, user);
-                if (string.IsNullOrEmpty(returnUrl))
-                    return RedirectToAction(nameof(Details), new { id = user.Id });
-                else
-                    return Redirect(returnUrl);
-            }
-        }
-
-
-        // GET: Porfile/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-
-
-        // POST: Porfile/Create
         [HttpPost]
         public async Task<IActionResult> CreatePost(CreatePostViewModel createPostViewModel)
         {
@@ -117,7 +80,6 @@ namespace SocialNetworkMiw.Controllers
                 {
                     await createPostViewModel.FileUrl.CopyToAsync(stream);
                 }
-                var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
                 Post post = new Post()
                 {
                     UserId = HttpContext.Session.GetString("UserId"),
@@ -131,7 +93,6 @@ namespace SocialNetworkMiw.Controllers
 
         }
 
-        // GET: Porfile/Edit/5
         [HttpGet]
         public ActionResult Edit(string id)
         {
@@ -141,8 +102,7 @@ namespace SocialNetworkMiw.Controllers
                 return View("Error", new ErrorViewModel());
             }
 
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
             if (user == null)
             {
                 return NotFound();
@@ -158,7 +118,6 @@ namespace SocialNetworkMiw.Controllers
             });
         }
 
-        // POST: Porfile/Edit/5
         [HttpPost]
         public async Task<IActionResult> Edit(string id, EditPorfileViewModel user)
         {
@@ -174,15 +133,14 @@ namespace SocialNetworkMiw.Controllers
                 {
                     await user.ImageUrl.CopyToAsync(stream);
                 }
-                var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-                var _user = collection.Find(new BsonDocument("$where", "this._id == '" + user.Id + "'")).Single();
+                var _user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + user.Id + "'")).Single();
                 _user.BirthDate = user.BirthDate;
                 _user.BornIn = user.From;
                 _user.City = user.City;
                 _user.ImageUrl = "/Images/" + Path.GetFileName(path);
                 _user.Job = user.Job;
                 _user.Name = user.Name;
-                collection.ReplaceOne(u => u.Id == _user.Id, _user);
+                collectionUser.ReplaceOne(u => u.Id == _user.Id, _user);
                 return RedirectToAction(nameof(Details), new { id = _user.Id });
             }
             else
@@ -191,109 +149,8 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
-        // GET: Porfile/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: Porfile/Delete/5
-        [HttpPost]
-        public ActionResult Delete(string id)
-        {
-            try
-            {
-                // TODO: Add delete logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        [HttpPost]
-        public JsonResult WriteComment([FromBody] CreateCommentViewModel createCommentViewModel)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(createCommentViewModel.Comment))
-                {
-                    return Json(new
-                    {
-                        isValid = false
-                    });
-                }
-                var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-                var post = collectionPost
-                           .Find(new BsonDocument("$where", "this._id == '" + createCommentViewModel.IdPost + "'")).Single();
-                Comment comment = new Comment()
-                {
-                    DateTime = DateTime.Now,
-                    Description = createCommentViewModel.Comment,
-                    UserName = HttpContext.Session.GetString("UserName"),
-                    UserId = HttpContext.Session.GetString("UserId"),
-                };
-                if (post.Comments == null)
-                    post.Comments = new List<Comment>()
-                    {
-                        comment
-                    };
-                else
-                    post.Comments.Add(comment);
-                collectionPost.ReplaceOne(x => x.Id == post.Id, post);
-                return Json(new
-                {
-                    isValid = true,
-                    comment,
-                    postId = post.Id
-                });
-            }
-            catch
-            {
-                return Json(new
-                {
-                    isValid = false
-                });
-            }
-        }
-
-
-
-
-        [HttpPost]
-        public JsonResult DeleteComment([FromBody] DeleteCommentViewModel deleteCommentViewModel)
-        {
-            try
-            {
-                var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-                var post = collectionPost
-                           .Find(new BsonDocument("$where", "this._id == '" + deleteCommentViewModel.PostId + "'")).Single();
-                Comment comment = post.Comments.Single(u => u.Id == deleteCommentViewModel.CommentId);
-                if (post.UserId == deleteCommentViewModel.UserId || deleteCommentViewModel.UserId == comment.UserId)
-                {
-                    post.Comments.Remove(comment);
-                }
-                collectionPost.ReplaceOne(x => x.Id == post.Id, post);
-                return Json(new
-                {
-                    isValid = true,
-                });
-            }
-            catch
-            {
-                return Json(new
-                {
-                    isValid = false
-                });
-            }
-        }
-
-
         public ActionResult DeletePost(string postId, string returnUrl)
         {
-            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
             var post = collectionPost.Find(new BsonDocument("$where", "this._id == '" + postId + "'")).Single();
             if (post.UserId == HttpContext.Session.GetString("UserId"))
             {
@@ -309,8 +166,6 @@ namespace SocialNetworkMiw.Controllers
 
         public ActionResult Photos(string id)
         {
-            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-            var collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
             if (id == HttpContext.Session.GetString("UserId") || 
                 collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().Friends.Any(u=>u==id))
             {

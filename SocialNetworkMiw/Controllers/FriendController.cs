@@ -18,101 +18,70 @@ namespace SocialNetworkMiw.Controllers
     public class FriendController : Controller
     {
         private readonly MongoClient mongoClient;
-
+        private readonly IMongoCollection<User> collectionUser;
         public FriendController(IConfiguration configuration)
         {
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
+            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
         }
 
-        // GET: Friend
-        public ActionResult Index()
-        {
-            return View();
-        }
-
-        // GET: Friend/Details/5
         public ActionResult Details(string id)
         {
             FriendViewModel friendViewModel = new FriendViewModel();
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var currentUser = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+            var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
             if (id == currentUser.Id)
             {            
-                friendViewModel.friends = collection.Find(Builders<User>.Filter.In(u => u.Id, currentUser.Friends)).ToList();
-                friendViewModel.description = "Your Friends";
+                friendViewModel.Friends = collectionUser.Find(Builders<User>.Filter.In(u => u.Id, currentUser.Friends)).ToList();
+                friendViewModel.Description = "Your Friends";
             }
             else if(currentUser.Friends.Any(u => u == id))
             {
-                var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single(); 
-                friendViewModel.friends = collection.Find(Builders<User>.Filter.In(u => u.Id, user.Friends)).ToList(); 
-                friendViewModel.description = String.Concat(user.Name,"'s"," friends");
+                var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single(); 
+                friendViewModel.Friends = collectionUser.Find(Builders<User>.Filter.In(u => u.Id, user.Friends)).ToList(); 
+                friendViewModel.Description = String.Concat(user.Name,"'s"," friends");
             }
             else
             {
-                friendViewModel.description = "You can't see the friends list";
+                friendViewModel.Description = "You can't see the friends list";
             }
-            friendViewModel.userId = id;
+            friendViewModel.UserId = id;
             return View(friendViewModel);
         }
 
-        // POST: Friend/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Create(IFormCollection collection)
+
+
+        public ActionResult AddFriend(string id, string returnUrl)
         {
-            try
+            FriendRequest requestFriend = new FriendRequest()
             {
-                // TODO: Add insert logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
+                DateTime = DateTime.Now,
+                UserId = HttpContext.Session.GetString("UserId"),
+            };
+            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+            if (user.FriendRequests.Any(u => u.UserId == HttpContext.Session.GetString("UserId"))
+                    || user.Friends.Any(u => u == HttpContext.Session.GetString("UserId")))
             {
-                return View();
+                return View("Error", new ErrorViewModel());
             }
-        }
-
-        // GET: Friend/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: Friend/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
+            else
             {
-                // TODO: Add update logic here
-
-                return RedirectToAction(nameof(Index));
+                user.FriendRequests.Add(requestFriend);
+                collectionUser.ReplaceOne(x => x.Id == user.Id, user);
+                return Redirect(returnUrl);
             }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: Friend/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
         }
 
 
         public ActionResult DeleteFriend(string friendId, string returnUrl)
         {
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
-            var friend = collection.Find(new BsonDocument("$where", "this._id == '" + friendId + "'")).Single();
+            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+            var friend = collectionUser.Find(new BsonDocument("$where", "this._id == '" + friendId + "'")).Single();
             if (user.Friends.Any(u => u == friend.Id) && friend.Friends.Any(u => u == user.Id))
             {
                 user.Friends.Remove(friendId);
                 friend.Friends.Remove(user.Id);
-                collection.ReplaceOne(u => u.Id == user.Id, user);
-                collection.ReplaceOne(u => u.Id == friend.Id, friend);
+                collectionUser.ReplaceOne(u => u.Id == user.Id, user);
+                collectionUser.ReplaceOne(u => u.Id == friend.Id, friend);
                 return Redirect(returnUrl);
             }
             else

@@ -7,8 +7,8 @@
 }
 
 
-<h1>@Model.description</h1>
-@foreach (var item in Model.friends)
+<h1>@Model.Description</h1>
+@foreach (var item in Model.Friends)
 {
 <div class="jumbotron">
     <div class="row">
@@ -28,7 +28,7 @@
             <p class="lead">BirthDate: @item.BirthDate</p>
         </div>
     </div>
-    @if (id == Model.userId)
+    @if (id == Model.UserId)
     {
         <hr>
         <a href="@Url.Action("DeleteFriend", "Friend", new { friendId = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Delete Friend</a>
