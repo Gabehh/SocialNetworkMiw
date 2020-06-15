@@ -19,7 +19,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.UrlImgUser)
+                <img src="@Url.Content(item.UrlImgUser)" style="width:100px;height:100px" />
             </td>
             <td>
                 <a href="@Url.Action("Details", "Porfile", new { id = item.UserId})">@item.UserName</a>
