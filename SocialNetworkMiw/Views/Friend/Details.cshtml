@@ -31,7 +31,9 @@
     @if (id == Model.UserId)
     {
         <hr>
-        <a href="@Url.Action("DeleteFriend", "Friend", new { friendId = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Delete Friend</a>
+        <a href="@Url.Action("DeleteFriend", "Friend", new { friendId = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right; margin-left:10px; margin-right:10px" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete Friend</a>
+        <a href="@Url.Action("Index", "Chat", new { id = item.Id })" style="float:right;margin-left:10px; margin-right:10px" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Chat</a>
+
     }
 </div>
 }

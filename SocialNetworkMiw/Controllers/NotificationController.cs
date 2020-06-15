@@ -27,9 +27,6 @@ namespace SocialNetworkMiw.Controllers
         // GET: Notification
         public ActionResult Index()
         {
-
-            /// HACER UN JOIN
-            /// 
             var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
             List<NotificationViewModel> notificationViewModels = new List<NotificationViewModel>();
             user.FriendRequests.ForEach(u =>
