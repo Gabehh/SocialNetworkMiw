@@ -1,0 +1,16 @@
+﻿@model List<Post>
+@{
+    ViewData["Title"] = "Photos";
+}
+
+<h1>Photos</h1>
+
+<div class="row">
+    @foreach (var post in Model)
+    {
+        if (post.Type == "image")
+        {
+            <a href="@Url.Content(post.FileUrl)"><img src="@Url.Content(post.FileUrl)" style="width:300px;height:300px;margin:40px" /></a>
+        }
+    }
+</div>

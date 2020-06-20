@@ -7,27 +7,24 @@ using System.Threading.Tasks;
 
 namespace SocialNetworkMiw.Models
 {
-    public class Comment
+    public class ChatContent
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-
-        [BsonElement("UserName")]
-        public string UserName { get; set; }
-
-        [BsonElement("UserId")]
-        public string UserId { get; set; }
-
-        [BsonElement("Description")]
-        public string Description { get; set; }
-
+        [BsonElement("Message")]
+        public string Message { get; set; }
         [BsonElement("DateTime")]
         public DateTime DateTime { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string CreateTo { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string ReadTo { get; set; }
 
-        public Comment()
+        public ChatContent()
         {
-            Id = ObjectId.GenerateNewId().ToString();      
+            Id = ObjectId.GenerateNewId().ToString();
         }
+
     }
 }

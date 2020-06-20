@@ -3,23 +3,23 @@
     {
         var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Notification" asp-action="Index">Notifications</a>
+            <a class="nav-link text-dark" asp-controller="Notification" asp-action="Index"><strong>Notifications</strong></a>
         </li>
         <li class="nav-item">
             <a class="nav-link text-dark" href="@Url.Action("Details", "Porfile",
-            new { id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value})" title="Manage">Hello @User.Identity.Name!</a>
+            new { id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value})" title="Manage"><strong>@User.Identity.Name!</strong></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout">Logout</a>
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout"><strong>Logout</strong></a>
         </li>
     }
     else
     {
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Create">Register</a>
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Create"><strong>Register</strong></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login"><strong>Login</strong></a>
         </li>
     }
 </ul>

@@ -17,49 +17,51 @@ namespace SocialNetworkMiw.Controllers
     public class PorfileController : Controller
     {
         private readonly MongoClient mongoClient;
+        private readonly IMongoCollection<User> collectionUser;
+        private readonly IMongoCollection<Post> collectionPost;
 
         public PorfileController(IConfiguration configuration)
         {
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
+            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
         }
 
         // GET: Porfile/Details/5
         public ActionResult Details(string id)
         {
-            if (string.IsNullOrEmpty(id)) 
+            if (string.IsNullOrEmpty(id))
                 return NotFound();
 
-            var collectionUsers = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-            var user = collectionUsers.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
-            
-            if (user == null) 
+            var user = collectionUser
+                        .Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+
+            if (user == null)
                 return NotFound();
 
-            var currentUser = collectionUsers
+            var currentUser = collectionUser
                             .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
 
-            PorfileViewModel porfileViewModel = new PorfileViewModel();
+            PorfileDetailsViewModel porfileViewModel = new PorfileDetailsViewModel();
 
-            if (currentUser.Id == id) 
+            if (currentUser.Id == id)
                 porfileViewModel.Porfile = TypePorfile.Porfile.User;
-            else if(currentUser.Friends.Contains(id)) 
+            else if (currentUser.Friends.Contains(id))
                 porfileViewModel.Porfile = TypePorfile.Porfile.Friend;
-            else 
+            else
                 porfileViewModel.Porfile = TypePorfile.Porfile.Unknown;
 
             porfileViewModel.BirthDate = user.BirthDate;
             porfileViewModel.BornIn = user.BornIn;
             porfileViewModel.Email = user.Email;
             porfileViewModel.Job = user.Job;
-            porfileViewModel.Posts = collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList().Select(u=> new ShowPostViewModel()
+            porfileViewModel.Posts = collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList().Select(u => new ShowPostViewModel()
             {
                 UserName = user.Name,
                 Post = u
-            }).ToList();
+            }).OrderByDescending(u=>u.Post.CreationDate).ToList();
             var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
-            porfileViewModel.Friends = collectionUsers.Find(filterFriend).ToList();
-            //porfileViewModel.Photos 
+            porfileViewModel.Friends = collectionUser.Find(filterFriend).ToList();
             porfileViewModel.City = user.City;
             porfileViewModel.Id = user.Id;
             porfileViewModel.ImageUrl = user.ImageUrl;
@@ -69,44 +71,6 @@ namespace SocialNetworkMiw.Controllers
             return View(porfileViewModel);
         }
 
-
-
-
-        public ActionResult AddFriend(string id, string returnUrl)
-        {
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            FriendRequest requestFriend = new FriendRequest()
-            {
-                DateTime = DateTime.Now,
-                UserId = HttpContext.Session.GetString("UserId"),
-            };
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
-            if (user.FriendRequests.Any(u => u.UserId == HttpContext.Session.GetString("UserId")) 
-                    || user.Friends.Any(u=>u== HttpContext.Session.GetString("UserId")))
-            {
-                return View("Error", new ErrorViewModel());
-            }
-            else
-            {
-                user.FriendRequests.Add(requestFriend);
-                collection.ReplaceOne(x => x.Id == user.Id, user);
-                if (string.IsNullOrEmpty(returnUrl))
-                    return RedirectToAction(nameof(Details), new { id = user.Id });
-                else
-                    return Redirect(returnUrl);
-            }
-        }
-
-
-        // GET: Porfile/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-
-
-        // POST: Porfile/Create
         [HttpPost]
         public async Task<IActionResult> CreatePost(CreatePostViewModel createPostViewModel)
         {
@@ -117,7 +81,6 @@ namespace SocialNetworkMiw.Controllers
                 {
                     await createPostViewModel.FileUrl.CopyToAsync(stream);
                 }
-                var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
                 Post post = new Post()
                 {
                     UserId = HttpContext.Session.GetString("UserId"),
@@ -127,97 +90,101 @@ namespace SocialNetworkMiw.Controllers
                 };
                 await collectionPost.InsertOneAsync(post);
             }
-            return RedirectToAction(nameof(Details), new { id = HttpContext.Session.GetString("UserId")});
+            return RedirectToAction(nameof(Details), new { id = HttpContext.Session.GetString("UserId") });
 
         }
 
-        // GET: Porfile/Edit/5
-        public ActionResult Edit(int id)
+        [HttpGet]
+        public ActionResult Edit(string id)
         {
-            return View();
-        }
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
 
-        // POST: Porfile/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
+            if (id != HttpContext.Session.GetString("UserId"))
             {
-                // TODO: Add update logic here
-
-                return RedirectToAction(nameof(Index));
+                return View("Error", new ErrorViewModel());
             }
-            catch
+
+            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+
+            return View(new EditPorfileViewModel()
             {
-                return View();
-            }
-        }
-
-        // GET: Porfile/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: Porfile/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add delete logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                BirthDate = user.BirthDate,
+                City = user.City,
+                From = user.BornIn,
+                Id = user.Id,
+                Job = user.Job,
+                Name = user.Name
+            });
         }
 
         [HttpPost]
-        public JsonResult WriteComment([FromBody] CreateCommentViewModel createCommentViewModel)
+        public async Task<IActionResult> Edit(string id, EditPorfileViewModel user)
         {
-            try
+            if (id != user.Id && id != HttpContext.Session.GetString("UserId"))
             {
-                if (string.IsNullOrEmpty(createCommentViewModel.Comment))
+                return NotFound();
+            }
+            if (ModelState.IsValid)
+            {
+
+                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", user.ImageUrl.FileName);
+                using (var stream = new FileStream(path, FileMode.Create))
                 {
-                    return Json(new
-                    {
-                        isValid = false
-                    });
+                    await user.ImageUrl.CopyToAsync(stream);
                 }
-                var collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
-                var post = collectionPost
-                           .Find(new BsonDocument("$where", "this._id == '" + createCommentViewModel.IdPost + "'")).Single();
-                Comment comment = new Comment()
-                {
-                    DateTime = DateTime.Now,
-                    Description = createCommentViewModel.Comment,
-                    User = HttpContext.Session.GetString("UserName") 
-                };
-                if (post.Comments == null)
-                    post.Comments = new List<Comment>()
-                    {
-                        comment
-                    };
-                else
-                    post.Comments.Add(comment);
-                collectionPost.ReplaceOne(x => x.Id == post.Id, post);
-                return Json(new
-                {
-                    isValid = true,
-                    comment
-                });
+                var _user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + user.Id + "'")).Single();
+                _user.BirthDate = user.BirthDate;
+                _user.BornIn = user.From;
+                _user.City = user.City;
+                _user.ImageUrl = "/Images/" + Path.GetFileName(path);
+                _user.Job = user.Job;
+                _user.Name = user.Name;
+                collectionUser.ReplaceOne(u => u.Id == _user.Id, _user);
+                return RedirectToAction(nameof(Details), new { id = _user.Id });
             }
-            catch
+            else
             {
-                return Json(new
-                {
-                    isValid = false
-                });
+                return View(user);
+            }
+        }
+
+        public ActionResult DeletePost(string postId, string returnUrl)
+        {
+
+            if (string.IsNullOrEmpty(postId))
+                return NotFound();
+
+            var post = collectionPost.Find(new BsonDocument("$where", "this._id == '" + postId + "'")).FirstOrDefault();
+
+            if (post == null)
+                return NotFound();
+
+            if (post.UserId == HttpContext.Session.GetString("UserId"))
+            {
+                collectionPost.DeleteOne(u => u.Id == post.Id);
+                return Redirect(returnUrl);
+            }
+            else
+            {
+                return View("Error", new ErrorViewModel());
+            }
+        }
+
+
+        public ActionResult Photos(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
+
+            if (id == HttpContext.Session.GetString("UserId") || 
+                collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().Friends.Any(u=>u==id))
+            {
+                return View(collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList());
+            }
+            else
+            {
+                return View("Error", new ErrorViewModel());
             }
         }
     }

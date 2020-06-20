@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace SocialNetworkMiw.Models
 {
-    public class ShowPostViewModel
+    public class ChatViewModel
     {
-        public Post Post { get; set; }
-        public string UserName { get; set; }
+        public Chat Group { get; set; }
+        public User User { get; set; }
     }
 }

@@ -13,94 +13,23 @@ namespace SocialNetworkMiw.Controllers
     public class UserController : Controller
     {
         private readonly MongoClient mongoClient;
+        private readonly IMongoCollection<User> collectionUser;
 
         public UserController(IConfiguration configuration)
         {
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
+            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
         }
 
-
-
-        // GET: User
-        public ActionResult Index()
-        {
-            return View();
-        }
-
-        // GET: User/Details/5
         [HttpGet]
         public ActionResult Details(string id)
         {
-            var collection = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            var user = collection.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
-            ViewData["MyFrienRequests"] = user.FriendRequests;       
-            return View(collection.Find(new BsonDocument("$where", "this.Name == '" + id + "'")).ToList());
-        }
-
-        // GET: User/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: User/Create
-        [HttpPost]
-        public ActionResult Create(IFormCollection collection)
-        {
-            try
+            UserViewModel userViewModel = new UserViewModel()
             {
-                // TODO: Add insert logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: User/Edit/5
-        public ActionResult Edit(int id)
-        {
-            return View();
-        }
-
-        // POST: User/Edit/5
-        [HttpPost]
-        public ActionResult Edit(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add update logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
-        }
-
-        // GET: User/Delete/5
-        public ActionResult Delete(int id)
-        {
-            return View();
-        }
-
-        // POST: User/Delete/5
-        [HttpPost]
-        public ActionResult Delete(int id, IFormCollection collection)
-        {
-            try
-            {
-                // TODO: Add delete logic here
-
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                CurrentUserRequests = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().FriendRequests,
+                Users = collectionUser.Find(new BsonDocument("$where", "this.Name == '" + id + "'")).ToList()
+            };
+            return View(userViewModel);
         }
     }
 }

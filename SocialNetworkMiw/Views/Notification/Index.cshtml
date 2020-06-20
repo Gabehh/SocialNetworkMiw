@@ -1,5 +1,11 @@
 ﻿@model IEnumerable<SocialNetworkMiw.Models.NotificationViewModel>
 
+
+
+@{ 
+    ViewData["Title"] = "Notifications";
+}
+
 <table class="table">
     <thead>
         <tr>
@@ -19,7 +25,7 @@
 @foreach (var item in Model) {
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.UrlImgUser)
+                <img src="@Url.Content(item.UrlImgUser)" style="width:100px;height:100px" />
             </td>
             <td>
                 <a href="@Url.Action("Details", "Porfile", new { id = item.UserId})">@item.UserName</a>
@@ -28,7 +34,7 @@
                 @Html.DisplayFor(modelItem => item.DateTime)
             </td>
             <td>
-                @Html.ActionLink("Accept", "Accept", new { idFrindRequest = item.FriendRequestId }) |
+                @Html.ActionLink("Accept", "Accept", new { idFrindRequest = item.FriendRequestId, returnUrl = Context.Request.Path + Context.Request.QueryString }) |
                 @Html.ActionLink("Delete", "Delete", new { idFrindRequest = item.FriendRequestId })
             </td>
         </tr>
