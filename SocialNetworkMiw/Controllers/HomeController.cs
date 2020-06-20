@@ -23,6 +23,7 @@ namespace SocialNetworkMiw.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IMongoCollection<User> collectionUser;
         private readonly IMongoCollection<Post> collectionPost;
+        private readonly IMongoCollection<Chat> collectionChat;
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration)
         {
@@ -30,12 +31,14 @@ namespace SocialNetworkMiw.Controllers
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
             collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
             collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+            collectionChat = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Chat>("Chats");
         }
 
 
         public IActionResult Index()
         {
-            var users = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().Friends;
+            var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+            var users = currentUser.Friends;
             users.Add(HttpContext.Session.GetString("UserId"));
             var data = (from user in collectionUser.AsQueryable() join post in collectionPost.AsQueryable()
                        on user.Id equals post.UserId
@@ -46,7 +49,21 @@ namespace SocialNetworkMiw.Controllers
                           Post = post,
                           UserName = user.Name
                        }).Take(50);
-            return View(data.ToList());
+            currentUser.Friends.Remove(HttpContext.Session.GetString("UserId"));
+            var filterFriend = Builders<User>.Filter.In(u => u.Id, currentUser.Friends);
+            var friends = collectionUser.Find(filterFriend).ToList();
+            var myChats = collectionChat.Find(y => y.Friends.Contains(currentUser.Id)).ToList();
+            var fiendsChats = friends.Select(u => new FriendMessages
+            {
+                Friend = u,
+                UnreadMessage = myChats.SelectMany(z=>z.Content.Where(z=>z.CreateTo == u.Id && z.ReadTo != currentUser.Id)).Count()
+            }).ToList();
+            HomeViewModel homeViewModel = new HomeViewModel()
+            {
+                Friends = fiendsChats,
+                ShowPost = data.ToList()
+            };
+            return View(homeViewModel);
         }
 
 

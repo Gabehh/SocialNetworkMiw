@@ -1,14 +1,19 @@
-﻿@model User
+﻿@model ChatViewModel;
 @{
-    ViewData["Title"] = "Chat";
+    ViewData["Title"] = string.Concat(Model.User.Name, " ", "Chat");
+    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
+    var name = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.Name).Value;
 }
 
-<h1>Chat with @Model.Name</h1>
+@Html.ActionLink(Model.User.Name, "Details", "Porfile", new { id = Model.User.Id }, new { @class = "display-4" })
 
 <div class="container">
     <div class="row">&nbsp;</div>
     <div class="row">
-        <div class="col-6">@Html.Hidden("userInput", Model.Id)</div>
+        <div class="col-6">@Html.Hidden("group", Model.Group.Id)</div>
+    </div>
+    <div class="row">
+        <div class="col-6"><img src="@Url.Content(Model.User.ImageUrl)" style="width:100px;height:100px" /></div>
     </div>
     <div class="row">
         <div class="col-2">Message</div>
@@ -28,7 +33,16 @@
 </div>
 <div class="row">
     <div class="col-6">
-        <ul id="messagesList"></ul>
+        <ul id="messagesList">
+        @{ 
+            var messages = Model.Group.Content.OrderBy(u => u.DateTime);
+            foreach(var message in messages)
+            {
+                var _name = @message.CreateTo == Model.User.Id ? Model.User.Name : name;
+                <li>@_name says: @message.Message</li>
+            }
+        }
+        </ul>
     </div>
 </div>
 <script src="~/js/signalr/dist/browser/signalr.js"></script>

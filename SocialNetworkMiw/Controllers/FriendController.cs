@@ -19,16 +19,22 @@ namespace SocialNetworkMiw.Controllers
     {
         private readonly MongoClient mongoClient;
         private readonly IMongoCollection<User> collectionUser;
+        private readonly IMongoCollection<Chat> collectionChat;
         public FriendController(IConfiguration configuration)
         {
             mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
             collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            collectionChat = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Chat>("Chats");
         }
 
         public ActionResult Details(string id)
         {
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
+
             FriendViewModel friendViewModel = new FriendViewModel();
-            var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+            var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).FirstOrDefault();
+
             if (id == currentUser.Id)
             {            
                 friendViewModel.Friends = collectionUser.Find(Builders<User>.Filter.In(u => u.Id, currentUser.Friends)).ToList();
@@ -48,16 +54,23 @@ namespace SocialNetworkMiw.Controllers
             return View(friendViewModel);
         }
 
-
-
         public ActionResult AddFriend(string id, string returnUrl)
         {
+
+            if(string.IsNullOrEmpty(id))
+                return NotFound();
+
             FriendRequest requestFriend = new FriendRequest()
             {
                 DateTime = DateTime.Now,
                 UserId = HttpContext.Session.GetString("UserId"),
             };
-            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+
+            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+
+            if (user == null)
+                return NotFound();
+
             if (user.FriendRequests.Any(u => u.UserId == HttpContext.Session.GetString("UserId"))
                     || user.Friends.Any(u => u == HttpContext.Session.GetString("UserId")))
             {
@@ -74,14 +87,27 @@ namespace SocialNetworkMiw.Controllers
 
         public ActionResult DeleteFriend(string friendId, string returnUrl)
         {
+            if (string.IsNullOrEmpty(friendId))
+                return NotFound();
+
+            var friend = collectionUser.Find(new BsonDocument("$where", "this._id == '" + friendId + "'")).FirstOrDefault();
+
+            if (friend == null)
+                return NotFound();
+
             var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
-            var friend = collectionUser.Find(new BsonDocument("$where", "this._id == '" + friendId + "'")).Single();
+
+
             if (user.Friends.Any(u => u == friend.Id) && friend.Friends.Any(u => u == user.Id))
             {
                 user.Friends.Remove(friendId);
                 friend.Friends.Remove(user.Id);
                 collectionUser.ReplaceOne(u => u.Id == user.Id, user);
                 collectionUser.ReplaceOne(u => u.Id == friend.Id, friend);
+                var groupId = collectionChat.Find(u => u.Friends.Contains(friend.Id)
+                            && u.Friends.Contains(user.Id) && u.Friends.Count == 2).Single().Id;
+                collectionChat.DeleteMany(u => u.Id == groupId);
+
                 return Redirect(returnUrl);
             }
             else
