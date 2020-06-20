@@ -33,7 +33,8 @@ namespace SocialNetworkMiw.Controllers
             if (string.IsNullOrEmpty(id))
                 return NotFound();
 
-            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+            var user = collectionUser
+                        .Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
 
             if (user == null)
                 return NotFound();
@@ -58,7 +59,7 @@ namespace SocialNetworkMiw.Controllers
             {
                 UserName = user.Name,
                 Post = u
-            }).ToList();
+            }).OrderByDescending(u=>u.Post.CreationDate).ToList();
             var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
             porfileViewModel.Friends = collectionUser.Find(filterFriend).ToList();
             porfileViewModel.City = user.City;
@@ -96,17 +97,16 @@ namespace SocialNetworkMiw.Controllers
         [HttpGet]
         public ActionResult Edit(string id)
         {
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
 
             if (id != HttpContext.Session.GetString("UserId"))
             {
                 return View("Error", new ErrorViewModel());
             }
 
-            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
-            if (user == null)
-            {
-                return NotFound();
-            }
+            var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+
             return View(new EditPorfileViewModel()
             {
                 BirthDate = user.BirthDate,
@@ -151,7 +151,15 @@ namespace SocialNetworkMiw.Controllers
 
         public ActionResult DeletePost(string postId, string returnUrl)
         {
-            var post = collectionPost.Find(new BsonDocument("$where", "this._id == '" + postId + "'")).Single();
+
+            if (string.IsNullOrEmpty(postId))
+                return NotFound();
+
+            var post = collectionPost.Find(new BsonDocument("$where", "this._id == '" + postId + "'")).FirstOrDefault();
+
+            if (post == null)
+                return NotFound();
+
             if (post.UserId == HttpContext.Session.GetString("UserId"))
             {
                 collectionPost.DeleteOne(u => u.Id == post.Id);
@@ -166,6 +174,9 @@ namespace SocialNetworkMiw.Controllers
 
         public ActionResult Photos(string id)
         {
+            if (string.IsNullOrEmpty(id))
+                return NotFound();
+
             if (id == HttpContext.Session.GetString("UserId") || 
                 collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().Friends.Any(u=>u==id))
             {

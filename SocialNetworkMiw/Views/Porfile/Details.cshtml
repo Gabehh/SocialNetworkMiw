@@ -15,7 +15,7 @@
         }
         else if (Model.Porfile == TypePorfile.Porfile.Friend)
         {
-            <button type="button" class="btn btn-danger btn-lg btn-block" data-toggle="modal" style="margin-top:10px" data-target="#exampleModal">
+            <button type="button" class="btn btn-danger btn-lg btn-block" data-toggle="modal" style="margin-top:10px" data-target="#modalDelete">
                 Delete Friend
             </button>
             <a href="@Url.Action("Index", "Chat", new { id = Model.Id })"  style="margin-top:10px" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Chat</a>
@@ -163,7 +163,7 @@
 }
 
 
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">

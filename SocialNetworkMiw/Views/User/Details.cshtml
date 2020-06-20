@@ -3,10 +3,6 @@
 @{
     var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
     var id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
-}
-
-
-@{
     ViewData["Title"] = "Users";
 }
 

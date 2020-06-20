@@ -125,8 +125,8 @@ namespace SocialNetworkMiw.Controllers
                     IsPersistent = true,
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(3),
                 });
-                HttpContext.Session.SetString("UserId", user.Id);
-                HttpContext.Session.SetString("UserName", user.Name);
+            HttpContext.Session.SetString("UserId", user.Id);
+            HttpContext.Session.SetString("UserName", user.Name);
         }
 
         // GET: Account/Edit/5

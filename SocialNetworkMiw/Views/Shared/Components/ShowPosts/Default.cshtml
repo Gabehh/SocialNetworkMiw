@@ -2,6 +2,7 @@
 @{
     var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
     var userId = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 @foreach (var post in Model)
 {
@@ -9,7 +10,8 @@
 
     if (post.Post.UserId == userId)
     {
-        <a href="@Url.Action("DeletePost", "Porfile", new { postId = post.Post.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete</a>
+        <button type="button" id="@post.Post.Id" class="btn btn-outline-danger modalDelete" data-toggle="modal" style="float:right;" data-target="#modalPost">Delete</button>
+        @*<a href="@Url.Action("DeletePost", "Porfile", new { postId = post.Post.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete</a>*@
     }
     <br />
     <label class="control-label"><strong>@post.Post.Description</strong></label>
@@ -33,7 +35,7 @@
                 </button>
                 <div id="collapse-@post.Post.Id" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
                     <div class="card-body">
-                        <div id="@post.Post.Id">
+                        <div id="comment-@post.Post.Id">
                             @if (post.Post.Comments != null)
                             {
                                 @foreach (var comment in post.Post.Comments)
@@ -66,3 +68,28 @@
     </div>
     <br />
 }
+
+
+<div class="modal fade" id="modalPost" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Post</h5>
+            </div>
+            <div class="modal-body">
+                Do you want to delete this post ?
+            </div>
+            <div class="modal-footer">
+                <a id="btnDelete" href="#" style="float:right" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete Post</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(".modalDelete").click(function () {
+        var id = $(this).attr("id");
+        $("#btnDelete").attr("href", "/Porfile/DeletePost?postId=" + id + "&returnUrl=" + '@returnUrl');
+    });
+</script>

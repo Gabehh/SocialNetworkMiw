@@ -11,7 +11,7 @@
             response.json().then(function (data) {
                 if (data.isValid) {
                     var date = new Date(data.comment.dateTime)
-                    $("#" + post).append('<div id="' + data.comment.id + '"><img onclick="DeleteComment(\''+data.postId+'\',\''+data.comment.id +'\',\''+data.comment.userId+'\')" style="width:20px;height:20px;" src="/images/icons/trash.png" /> <label class="control-label"> ' + data.comment.userName +
+                    $("#comment-" + post).append('<div id="' + data.comment.id + '"><img onclick="DeleteComment(\''+data.postId+'\',\''+data.comment.id +'\',\''+data.comment.userId+'\')" style="width:20px;height:20px;" src="/images/icons/trash.png" /> <label class="control-label"> ' + data.comment.userName +
                         ' (' + (date.toLocaleString()) + ') said: ' + data.comment.description + ' </label><br /></div>');
                     $("." + post).val("");
                 }
