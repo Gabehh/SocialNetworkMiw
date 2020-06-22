@@ -53,7 +53,6 @@ namespace SocialNetworkMiw.Models
 
         [Display(Name = "Image")]
         [DataType(DataType.Upload)]
-        [Required]
         public IFormFile ImageUrl { get; set; }
 
         [Display(Name = "BirthDate")]

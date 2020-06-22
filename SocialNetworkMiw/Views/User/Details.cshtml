@@ -40,11 +40,11 @@
                 if (Model.CurrentUserRequests.Any(u => u.UserId == item.Id))
                 {
                     FriendRequest friendRequest = Model.CurrentUserRequests.Single(u => u.UserId == item.Id);
-                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Confirm</a>
+                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-outline-primary" role="button" aria-pressed="true">Confirm</a>
                 }
                 else
                 {
-                    <a href="@Url.Action("AddFriend", "Friend", new { id = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">Add Friend</a>
+                    <a href="@Url.Action("AddFriend", "Friend", new { id = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-outline-primary" role="button" aria-pressed="true">Add Friend</a>
                 }
             }
             else
