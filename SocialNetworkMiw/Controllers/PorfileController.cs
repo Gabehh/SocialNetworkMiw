@@ -155,18 +155,21 @@ namespace SocialNetworkMiw.Controllers
                 }
                 if (ModelState.IsValid)
                 {
-                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", user.ImageUrl.FileName);
-                    using (var stream = new FileStream(path, FileMode.Create))
-                    {
-                        await user.ImageUrl.CopyToAsync(stream);
-                    }
                     var _user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + user.Id + "'")).Single();
                     _user.BirthDate = user.BirthDate;
                     _user.BornIn = user.From;
                     _user.City = user.City;
-                    _user.ImageUrl = "/Images/" + Path.GetFileName(path);
                     _user.Job = user.Job;
                     _user.Name = user.Name;
+                    if (user.ImageUrl != null)
+                    {
+                        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", user.ImageUrl.FileName);
+                        using (var stream = new FileStream(path, FileMode.Create))
+                        {
+                            await user.ImageUrl.CopyToAsync(stream);
+                        }
+                        _user.ImageUrl = "/Images/" + Path.GetFileName(path);
+                    }
                     collectionUser.ReplaceOne(u => u.Id == _user.Id, _user);
                     return RedirectToAction(nameof(Details), new { id = _user.Id });
                 }
