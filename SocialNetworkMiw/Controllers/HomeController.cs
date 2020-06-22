@@ -19,7 +19,6 @@ namespace SocialNetworkMiw.Controllers
     public class HomeController : Controller
     {
         private readonly MongoClient mongoClient;
-
         private readonly ILogger<HomeController> _logger;
         private readonly IMongoCollection<User> collectionUser;
         private readonly IMongoCollection<Post> collectionPost;
@@ -37,33 +36,41 @@ namespace SocialNetworkMiw.Controllers
 
         public IActionResult Index()
         {
-            var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
-            var users = currentUser.Friends;
-            users.Add(HttpContext.Session.GetString("UserId"));
-            var data = (from user in collectionUser.AsQueryable() join post in collectionPost.AsQueryable()
-                       on user.Id equals post.UserId
-                       where users.Contains(post.UserId)
-                       orderby post.CreationDate descending
-                       select new ShowPostViewModel
-                       {
-                          Post = post,
-                          UserName = user.Name
-                       }).Take(50);
-            currentUser.Friends.Remove(HttpContext.Session.GetString("UserId"));
-            var filterFriend = Builders<User>.Filter.In(u => u.Id, currentUser.Friends);
-            var friends = collectionUser.Find(filterFriend).ToList();
-            var myChats = collectionChat.Find(y => y.Friends.Contains(currentUser.Id)).ToList();
-            var fiendsChats = friends.Select(u => new FriendMessages
+            try
             {
-                Friend = u,
-                UnreadMessage = myChats.SelectMany(z=>z.Content.Where(z=>z.CreateTo == u.Id && z.ReadTo != currentUser.Id)).Count()
-            }).ToList();
-            HomeViewModel homeViewModel = new HomeViewModel()
+                var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+                var users = currentUser.Friends;
+                users.Add(HttpContext.Session.GetString("UserId"));
+                var dataPosts = (from user in collectionUser.AsQueryable()
+                                 join post in collectionPost.AsQueryable()
+                                 on user.Id equals post.UserId
+                                 where users.Contains(post.UserId)
+                                 orderby post.CreationDate descending
+                                 select new ShowPostViewModel
+                                 {
+                                     Post = post,
+                                     UserName = user.Name
+                                 }).Take(50).ToList();
+                currentUser.Friends.Remove(HttpContext.Session.GetString("UserId"));
+                var filterFriend = Builders<User>.Filter.In(u => u.Id, currentUser.Friends);
+                var friends = collectionUser.Find(filterFriend).ToList();
+                var myChats = collectionChat.Find(y => y.Friends.Contains(currentUser.Id)).ToList();
+                var fiendsChats = friends.Select(u => new FriendMessages
+                {
+                    Friend = u,
+                    UnreadMessage = myChats.SelectMany(z => z.Content.Where(z => z.CreateTo == u.Id && z.ReadTo != currentUser.Id)).Count()
+                }).ToList();
+                return View(new HomeViewModel()
+                {
+                    Friends = fiendsChats,
+                    ShowPost = dataPosts
+                });
+            }
+            catch(Exception ex)
             {
-                Friends = fiendsChats,
-                ShowPost = data.ToList()
-            };
-            return View(homeViewModel);
+                _logger.LogError(ex.Message);
+                return View("Error", new ErrorViewModel());
+            }
         }
 
 
@@ -71,23 +78,31 @@ namespace SocialNetworkMiw.Controllers
         [HttpPost]
         public async Task<IActionResult> CreatePost(CreatePostViewModel createPostViewModel)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", createPostViewModel.FileUrl.FileName);
-                using (var stream = new FileStream(path, FileMode.Create))
+                if (ModelState.IsValid)
                 {
-                    await createPostViewModel.FileUrl.CopyToAsync(stream);
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", createPostViewModel.FileUrl.FileName);
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await createPostViewModel.FileUrl.CopyToAsync(stream);
+                    }
+                    Post post = new Post()
+                    {
+                        UserId = HttpContext.Session.GetString("UserId"),
+                        FileUrl = "/Images/" + Path.GetFileName(path),
+                        Description = createPostViewModel.Description,
+                        CreationDate = DateTime.Now
+                    };
+                    await collectionPost.InsertOneAsync(post);
                 }
-                Post post = new Post()
-                {
-                    UserId = HttpContext.Session.GetString("UserId"),
-                    FileUrl = "/Images/" + Path.GetFileName(path),
-                    Description = createPostViewModel.Description,
-                    CreationDate = DateTime.Now
-                };
-                await collectionPost.InsertOneAsync(post);
+                return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            catch(Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return View("Error", new ErrorViewModel());
+            }
 
         }
 
@@ -112,6 +127,11 @@ namespace SocialNetworkMiw.Controllers
                     UserName = HttpContext.Session.GetString("UserName"),
                     UserId = HttpContext.Session.GetString("UserId"),
                 };
+
+                var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+                if (post.UserId != currentUser.Id && !currentUser.Friends.Contains(post.UserId))
+                    throw new Exception("Post wrong");
+
                 if (post.Comments == null)
                     post.Comments = new List<Comment>()
                     {
@@ -135,9 +155,6 @@ namespace SocialNetworkMiw.Controllers
                 });
             }
         }
-
-
-
 
         [HttpPost]
         public JsonResult DeleteComment([FromBody] DeleteCommentViewModel deleteCommentViewModel)

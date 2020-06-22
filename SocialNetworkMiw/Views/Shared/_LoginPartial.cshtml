@@ -7,7 +7,7 @@
         </li>
         <li class="nav-item">
             <a class="nav-link text-dark" href="@Url.Action("Details", "Porfile",
-            new { id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value})" title="Manage"><strong>@User.Identity.Name!</strong></a>
+            new { id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value})" title="Manage"><strong>@User.Identity.Name</strong></a>
         </li>
         <li class="nav-item">
             <a class="nav-link text-dark" asp-controller="Account" asp-action="Logout"><strong>Logout</strong></a>

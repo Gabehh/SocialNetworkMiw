@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -11,7 +13,6 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
-using JsonConvert = Newtonsoft.Json.JsonConvert;
 
 namespace SocialNetworkMiw.Controllers
 {
@@ -66,13 +67,19 @@ namespace SocialNetworkMiw.Controllers
             {
                 if(!collectionUser.Find(new BsonDocument("$where", "this.Email == '" + register.Email + "'")).Any())
                 {
+                    string password = string.Empty;
+                    using (MD5 md5Hash = MD5.Create())
+                    {
+                        password = GetMd5Hash(md5Hash, register.Password);
+                    }
                     User user = new User()
                     {
                         Name = register.Name,
                         Email = register.Email,
-                        Password =  register.Password,
+                        Password = password,
                         Friends = new List<string>(),
-                        FriendRequests = new List<FriendRequest>()
+                        FriendRequests = new List<FriendRequest>(),
+                        ImageUrl = "/Images/icons/face.png"
                     };
                     collectionUser.InsertOne(user);
                     await SignIn(user);
@@ -81,6 +88,14 @@ namespace SocialNetworkMiw.Controllers
                 ModelState.AddModelError("", "The email is already used");
             }
             return View(register);
+        }
+
+        private static string GetMd5Hash(MD5 md5Hash, string input)
+        {
+            byte[] data = md5Hash.ComputeHash(Encoding.UTF8.GetBytes(input));
+            StringBuilder sBuilder = new StringBuilder();
+            for (int i = 0; i < data.Length; i++) sBuilder.Append(data[i].ToString("x2"));
+            return sBuilder.ToString();
         }
 
         //
@@ -93,7 +108,13 @@ namespace SocialNetworkMiw.Controllers
                 return View(model);
             }
 
-            var user = collectionUser.Find(new BsonDocument("$where", "this.Email == '" + model.Email + "' && this.Password =='" + model.Password+"'")).FirstOrDefault();
+            string password = string.Empty;
+            using (MD5 md5Hash = MD5.Create())
+            {
+                password = GetMd5Hash(md5Hash, model.Password);
+            }
+
+            var user = collectionUser.Find(new BsonDocument("$where", "this.Email == '" + model.Email + "' && this.Password =='" + password + "'")).FirstOrDefault();
 
             if (user != null)
             {
@@ -123,7 +144,7 @@ namespace SocialNetworkMiw.Controllers
                 new AuthenticationProperties
                 {
                     IsPersistent = true,
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(3),
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(30),
                 });
             HttpContext.Session.SetString("UserId", user.Id);
             HttpContext.Session.SetString("UserName", user.Name);
