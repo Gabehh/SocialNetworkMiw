@@ -171,6 +171,8 @@ namespace SocialNetworkMiw.Controllers
                         _user.ImageUrl = "/Images/" + Path.GetFileName(path);
                     }
                     collectionUser.ReplaceOne(u => u.Id == _user.Id, _user);
+                    HttpContext.Session.SetString("UserName", _user.Name);
+                    HttpContext.Session.SetString("UserImage", _user.ImageUrl);
                     return RedirectToAction(nameof(Details), new { id = _user.Id });
                 }
                 else

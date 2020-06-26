@@ -1,10 +1,10 @@
 ﻿@model FriendViewModel
-
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 
 @{
-    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
-    var id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
-    ViewData["Title"] = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.Name).Value;
+    var id = HttpContextAccessor.HttpContext.Session.GetString("UserId");
+    ViewData["Title"] = "Friends";
 }
 
 @{
@@ -15,33 +15,33 @@
 <h1>@Model.Description</h1>
 @foreach (var item in Model.Friends)
 {
-<div class="jumbotron">
-    <div class="row">
-        <div class="col-md-6">
-            <img src="@Url.Content(item.ImageUrl)" style="width:300px;height:300px" />
+    <div class="jumbotron">
+        <div class="row">
+            <div class="col-md-6">
+                <img src="@Url.Content(item.ImageUrl)" style="width:300px;height:300px" />
+            </div>
+            <div class="col-md-6">
+                @Html.ActionLink(item.Name, "Details", "Porfile", new { id = item.Id }, new { @class = "display-4" })
+                @{
+                    var countFriends = item.Friends == null ? "0" : item.Friends.Count().ToString();
+                }
+                <p class="lead">City: @item.City</p>
+                <p class="lead">Job: @item.Job</p>
+                <p class="lead">Friends: @countFriends</p>
+                <p class="lead">From: @item.BornIn</p>
+                <p class="lead">Email: @item.Email</p>
+                <p class="lead">BirthDate: @item.BirthDate</p>
+            </div>
         </div>
-        <div class="col-md-6">
-            @Html.ActionLink(item.Name, "Details", "Porfile", new { id = item.Id }, new { @class = "display-4" })
-            @{
-                var countFriends = item.Friends == null ? "0" : item.Friends.Count().ToString();
-            }
-            <p class="lead">City: @item.City</p>
-            <p class="lead">Job: @item.Job</p>
-            <p class="lead">Friends: @countFriends</p>
-            <p class="lead">From: @item.BornIn</p>
-            <p class="lead">Email: @item.Email</p>
-            <p class="lead">BirthDate: @item.BirthDate</p>
-        </div>
+        @if (id == Model.UserId)
+        {
+            <hr>
+
+            <button type="button" id="@item.Id" class="btn btn-outline-danger modalDelete" data-toggle="modal" style="float:right;" data-target="#modalDelete">Delete Friend</button>
+            <a href="@Url.Action("Index", "Chat", new { id = item.Id })" style="float:right;margin-right:10px" class="btn btn-outline-primary" role="button" aria-pressed="true">Chat</a>
+
+        }
     </div>
-    @if (id == Model.UserId)
-    {
-        <hr>
-
-        <button type="button" id="@item.Id"  class="btn btn-outline-danger modalDelete"  data-toggle="modal"  style="float:right;" data-target="#modalDelete">Delete Friend</button>
-        <a href="@Url.Action("Index", "Chat", new { id = item.Id })" style="float:right;margin-right:10px" class="btn btn-outline-primary" role="button" aria-pressed="true">Chat</a>
-
-    }
-</div>
 }
 
 <div class="modal fade" id="modalDelete" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
