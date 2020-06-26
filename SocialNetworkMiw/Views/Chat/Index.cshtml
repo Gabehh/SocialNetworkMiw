@@ -1,8 +1,9 @@
 ﻿@model ChatViewModel;
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
     ViewData["Title"] = string.Concat(Model.User.Name, " ", "Chat");
-    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
-    var name = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.Name).Value;
+    var name = HttpContextAccessor.HttpContext.Session.GetString("UserName");
 }
 
 @Html.ActionLink(Model.User.Name, "Details", "Porfile", new { id = Model.User.Id }, new { @class = "display-4" })
@@ -34,14 +35,14 @@
 <div class="row">
     <div class="col-6">
         <ul id="messagesList">
-        @{ 
-            var messages = Model.Group.Content.OrderBy(u => u.DateTime);
-            foreach(var message in messages)
-            {
-                var _name = @message.CreateTo == Model.User.Id ? Model.User.Name : name;
-                <li>@_name says: @message.Message</li>
+            @{
+                var messages = Model.Group.Content.OrderBy(u => u.DateTime);
+                foreach (var message in messages)
+                {
+                    var _name = @message.CreateTo == Model.User.Id ? Model.User.Name : name;
+                    <li>@_name says: @message.Message</li>
+                }
             }
-        }
         </ul>
     </div>
 </div>

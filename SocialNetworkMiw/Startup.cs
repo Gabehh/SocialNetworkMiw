@@ -26,8 +26,9 @@ namespace SocialNetworkMiw
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
             services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromSeconds(3600);
+                options.IdleTimeout = TimeSpan.FromSeconds(1850);
             });
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSignalR();
         }
 

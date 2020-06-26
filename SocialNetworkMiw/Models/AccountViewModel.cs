@@ -21,6 +21,7 @@ namespace SocialNetworkMiw.Models
         [Required]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
+        [StringLength(15, ErrorMessage = "The password is very short", MinimumLength = 5)]
         public string Password { get; set; }
 
         [DataType(DataType.Password)]

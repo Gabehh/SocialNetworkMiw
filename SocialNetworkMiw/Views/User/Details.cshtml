@@ -1,8 +1,8 @@
 ﻿@model UserViewModel
-
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
-    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
-    var id = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+    var id = HttpContextAccessor.HttpContext.Session.GetString("UserId");
     ViewData["Title"] = "Users";
 }
 
