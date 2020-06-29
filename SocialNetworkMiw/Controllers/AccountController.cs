@@ -148,6 +148,7 @@ namespace SocialNetworkMiw.Controllers
                 });
             HttpContext.Session.SetString("UserId", user.Id);
             HttpContext.Session.SetString("UserName", user.Name);
+            HttpContext.Session.SetString("UserImage", user.ImageUrl);
         }
 
         // GET: Account/Edit/5

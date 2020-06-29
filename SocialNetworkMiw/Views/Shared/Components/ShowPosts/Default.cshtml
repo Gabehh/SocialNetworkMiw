@@ -1,7 +1,9 @@
 ﻿@model List<ShowPostViewModel>
+@using Microsoft.AspNetCore.Http
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
 @{
-    var claimsIdentity = User.Identity as System.Security.Claims.ClaimsIdentity;
-    var userId = claimsIdentity.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value;
+    var userId = HttpContextAccessor.HttpContext.Session.GetString("UserId");
     var returnUrl = Context.Request.Path + Context.Request.QueryString;
 }
 @foreach (var post in Model)
