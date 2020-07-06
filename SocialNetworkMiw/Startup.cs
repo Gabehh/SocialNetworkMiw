@@ -23,10 +23,14 @@ namespace SocialNetworkMiw
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(option =>
+            {
+                option.Cookie.SameSite = SameSiteMode.None;
+            });
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromSeconds(1850);
+                options.Cookie.SameSite = SameSiteMode.None;
             });
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSignalR();
@@ -47,11 +51,7 @@ namespace SocialNetworkMiw
             }
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            var cookiePolicyOptions = new CookiePolicyOptions
-            {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
-            };
-            app.UseCookiePolicy(cookiePolicyOptions);
+            app.UseCookiePolicy();
             app.UseSession();
             app.UseRouting();
             app.UseAuthentication();

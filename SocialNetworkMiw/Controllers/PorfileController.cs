@@ -149,7 +149,7 @@ namespace SocialNetworkMiw.Controllers
         {
             try
             {
-                if (id != user.Id && id != HttpContext.Session.GetString("UserId"))
+                if (id != user.Id || id != HttpContext.Session.GetString("UserId"))
                 {
                     return NotFound();
                 }
