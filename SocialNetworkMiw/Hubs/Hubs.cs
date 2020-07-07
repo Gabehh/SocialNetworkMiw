@@ -7,19 +7,21 @@ using SocialNetworkMiw.Models;
 using MongoDB.Bson;
 using System;
 using System.Linq;
+using System.Text.Encodings.Web;
+using SocialNetworkMiw.Services;
 
 namespace SignalRChat.Hubs
 {
     [Authorize]
     public class ChatHub : Hub
     {
-        private readonly MongoClient mongoClient;
-        private readonly IMongoCollection<Chat> collectionChat;
+        private readonly HtmlEncoder htmlEncoder;
+        private readonly ChatService chatService;
 
-        public ChatHub(IConfiguration configuration)
+        public ChatHub(HtmlEncoder htmlEncoder, ChatService chatService)
         {
-            mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
-            collectionChat = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Chat>("Chats");
+            this.htmlEncoder = htmlEncoder;
+            this.chatService = chatService;
         }
 
 
@@ -28,16 +30,16 @@ namespace SignalRChat.Hubs
             var httpContext = Context.GetHttpContext();
             var group = httpContext.Request.Query["group"].ToString();
             string name = Context.User.Identity.Name;
-            var chat = collectionChat.Find(new BsonDocument("$where", "this._id == '" + group + "'")).Single();
+            var chat = chatService.Get(group);
             ChatContent chatContent = new ChatContent()
             {
                 DateTime = DateTime.Now,
-                Message = message,
+                Message = htmlEncoder.Encode(message),
                 CreateTo = Context.User.Claims.ToList()[1].Value
             };
             chat.Content.Add(chatContent);
-            collectionChat.ReplaceOneAsync(u => u.Id == chat.Id, chat);
-            return Clients.Group(group).SendAsync("ReceiveMessage", name, message, chatContent.Id);
+            chatService.Update(chat.Id, chat);
+            return Clients.Group(group).SendAsync("ReceiveMessage", name, htmlEncoder.Encode(message), chatContent.Id);
         }
 
 
@@ -45,12 +47,12 @@ namespace SignalRChat.Hubs
         {
             var httpContext = Context.GetHttpContext();
             var group = httpContext.Request.Query["group"].ToString();
-            var chat = collectionChat.Find(new BsonDocument("$where", "this._id == '" + group + "'")).Single();
+            var chat = chatService.Get(group);
             var content = chat.Content.Find(u => u.Id == id);
             if (content.CreateTo != Context.User.Claims.ToList()[1].Value)
             {
                 content.ReadTo = Context.User.Claims.ToList()[1].Value;
-                collectionChat.ReplaceOneAsync(u => u.Id == chat.Id, chat);
+                chatService.Update(chat.Id, chat);
             }
         }
 

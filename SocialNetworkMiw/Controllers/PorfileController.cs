@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -21,12 +22,14 @@ namespace SocialNetworkMiw.Controllers
         private readonly ILogger<PorfileController> _logger;
         private readonly UserService userService;
         private readonly PostService postService;
+        private readonly HtmlEncoder htmlEncoder;
 
-        public PorfileController(ILogger<PorfileController> logger, UserService userService, PostService postService)
+        public PorfileController(ILogger<PorfileController> logger, UserService userService, PostService postService, HtmlEncoder htmlEncoder)
         {
             _logger = logger;
             this.postService = postService;
             this.userService = userService;
+            this.htmlEncoder = htmlEncoder;
         }
 
         // GET: Porfile/Details/5
@@ -94,7 +97,7 @@ namespace SocialNetworkMiw.Controllers
                     {
                         UserId = HttpContext.Session.GetString("UserId"),
                         FileUrl = "/Images/" + Path.GetFileName(path),
-                        Description = createPostViewModel.Description,
+                        Description = htmlEncoder.Encode(createPostViewModel.Description),
                         CreationDate = DateTime.Now
                     };
                     postService.Create(post);
@@ -156,10 +159,10 @@ namespace SocialNetworkMiw.Controllers
                 {
                     var _user = userService.Get(user.Id);
                     _user.BirthDate = user.BirthDate;
-                    _user.BornIn = user.From;
-                    _user.City = user.City;
-                    _user.Job = user.Job;
-                    _user.Name = user.Name;
+                    _user.BornIn = htmlEncoder.Encode(user.From ?? string.Empty);
+                    _user.City = htmlEncoder.Encode(user.City ?? string.Empty);
+                    _user.Job = htmlEncoder.Encode(user.Job ?? string.Empty);
+                    _user.Name = htmlEncoder.Encode(user.Name);
                     if (user.ImageUrl != null)
                     {
                         var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", user.ImageUrl.FileName);

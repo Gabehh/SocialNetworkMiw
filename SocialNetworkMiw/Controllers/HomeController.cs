@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -23,14 +24,16 @@ namespace SocialNetworkMiw.Controllers
         private readonly UserService userService;
         private readonly PostService postService;
         private readonly ChatService chatService;
+        private readonly HtmlEncoder htmlEncoder;
 
 
-        public HomeController(ILogger<HomeController> logger, UserService userService, PostService postService, ChatService chatService)
+        public HomeController(ILogger<HomeController> logger, UserService userService, PostService postService, ChatService chatService, HtmlEncoder htmlEncoder)
         {
             _logger = logger;
             this.chatService = chatService;
             this.postService = postService;
             this.userService = userService;
+            this.htmlEncoder = htmlEncoder;
         }
 
 
@@ -91,7 +94,7 @@ namespace SocialNetworkMiw.Controllers
                     {
                         UserId = HttpContext.Session.GetString("UserId"),
                         FileUrl = "/Images/" + Path.GetFileName(path),
-                        Description = createPostViewModel.Description,
+                        Description = htmlEncoder.Encode(createPostViewModel.Description),
                         CreationDate = DateTime.Now
                     };
                     postService.Create(post);
@@ -122,7 +125,7 @@ namespace SocialNetworkMiw.Controllers
                 Comment comment = new Comment()
                 {
                     DateTime = DateTime.Now,
-                    Description = createCommentViewModel.Comment,
+                    Description = htmlEncoder.Encode(createCommentViewModel.Comment),
                     UserName = HttpContext.Session.GetString("UserName"),
                     UserId = HttpContext.Session.GetString("UserId"),
                 };

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -20,10 +21,12 @@ namespace SocialNetworkMiw.Controllers
     public class AccountController : Controller
     {
         private readonly UserService userService;
+        private readonly HtmlEncoder htmlEncoder;
 
-        public AccountController(UserService userService)
+        public AccountController(UserService userService, HtmlEncoder htmlEncoder)
         {
             this.userService = userService;
+            this.htmlEncoder = htmlEncoder;
         }
 
         // GET: Account
@@ -73,8 +76,8 @@ namespace SocialNetworkMiw.Controllers
                     }
                     User user = new User()
                     {
-                        Name = register.Name,
-                        Email = register.Email,
+                        Name = htmlEncoder.Encode(register.Name),
+                        Email = htmlEncoder.Encode(register.Email),
                         Password = password,
                         Friends = new List<string>(),
                         FriendRequests = new List<FriendRequest>(),
