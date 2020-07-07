@@ -12,23 +12,23 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using SocialNetworkMiw.Services;
 
 namespace SocialNetworkMiw.Controllers
 {
     [Authorize]
     public class FriendController : Controller
     {
-        private readonly MongoClient mongoClient;
-        private readonly IMongoCollection<User> collectionUser;
-        private readonly IMongoCollection<Chat> collectionChat;
-        private readonly ILogger<FriendController> _logger;
 
-        public FriendController(ILogger<FriendController> logger,IConfiguration configuration)
+        private readonly ILogger<FriendController> _logger;
+        private readonly UserService userService;
+        private readonly ChatService chatService;
+
+        public FriendController(ILogger<FriendController> logger, UserService userService, ChatService chatService)
         {
             _logger = logger;
-            mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
-            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            collectionChat = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Chat>("Chats");
+            this.userService = userService;
+            this.chatService = chatService;
         }
 
         public ActionResult Details(string id)
@@ -39,17 +39,17 @@ namespace SocialNetworkMiw.Controllers
                     return NotFound();
 
                 FriendViewModel friendViewModel = new FriendViewModel();
-                var currentUser = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).FirstOrDefault();
+                var currentUser = userService.Get(HttpContext.Session.GetString("UserId"));
 
                 if (id == currentUser.Id)
                 {
-                    friendViewModel.Friends = collectionUser.Find(Builders<User>.Filter.In(u => u.Id, currentUser.Friends)).ToList();
+                    friendViewModel.Friends = userService.Get(currentUser.Friends);
                     friendViewModel.Description = "Your Friends";
                 }
                 else if (currentUser.Friends.Any(u => u == id))
                 {
-                    var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
-                    friendViewModel.Friends = collectionUser.Find(Builders<User>.Filter.In(u => u.Id, user.Friends)).ToList();
+                    var user = userService.Get(id);
+                    friendViewModel.Friends = userService.Get(user.Friends);
                     friendViewModel.Description = String.Concat(user.Name, "'s", " friends");
                 }
                 else
@@ -73,7 +73,7 @@ namespace SocialNetworkMiw.Controllers
                 if (string.IsNullOrEmpty(id))
                     return NotFound();
 
-                var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+                var user = userService.Get(id);
 
                 if (user == null)
                     return NotFound();
@@ -92,7 +92,7 @@ namespace SocialNetworkMiw.Controllers
                 else
                 {
                     user.FriendRequests.Add(requestFriend);
-                    collectionUser.ReplaceOne(x => x.Id == user.Id, user);
+                    userService.Update(user.Id, user);
                     return Redirect(returnUrl);
                 }
             }
@@ -111,23 +111,22 @@ namespace SocialNetworkMiw.Controllers
                 if (string.IsNullOrEmpty(friendId))
                     return NotFound();
 
-                var friend = collectionUser.Find(new BsonDocument("$where", "this._id == '" + friendId + "'")).FirstOrDefault();
+                var friend = userService.Get(friendId);
 
                 if (friend == null)
                     return NotFound();
 
-                var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+                var user = userService.Get(HttpContext.Session.GetString("UserId"));
 
 
                 if (user.Friends.Any(u => u == friend.Id) && friend.Friends.Any(u => u == user.Id))
                 {
                     user.Friends.Remove(friendId);
                     friend.Friends.Remove(user.Id);
-                    collectionUser.ReplaceOne(u => u.Id == user.Id, user);
-                    collectionUser.ReplaceOne(u => u.Id == friend.Id, friend);
-                    var groupId = collectionChat.Find(u => u.Friends.Contains(friend.Id)
-                                && u.Friends.Contains(user.Id) && u.Friends.Count == 2).Single().Id;
-                    collectionChat.DeleteMany(u => u.Id == groupId);
+                    userService.Update(user.Id, user);
+                    userService.Update(friend.Id, friend);
+                    var groupId = chatService.GetByUserIds(friend.Id, user.Id).Id;
+                    chatService.Remove(groupId);
                     return Redirect(returnUrl);
                 }
                 else

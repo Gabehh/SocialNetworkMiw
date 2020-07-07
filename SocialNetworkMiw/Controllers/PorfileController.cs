@@ -11,23 +11,22 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using SocialNetworkMiw.Services;
 
 namespace SocialNetworkMiw.Controllers
 {
     [Authorize]
     public class PorfileController : Controller
     {
-        private readonly MongoClient mongoClient;
-        private readonly IMongoCollection<User> collectionUser;
-        private readonly IMongoCollection<Post> collectionPost;
         private readonly ILogger<PorfileController> _logger;
+        private readonly UserService userService;
+        private readonly PostService postService;
 
-        public PorfileController(ILogger<PorfileController> logger, IConfiguration configuration)
+        public PorfileController(ILogger<PorfileController> logger, UserService userService, PostService postService)
         {
             _logger = logger;
-            mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
-            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            collectionPost = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Post>("Posts");
+            this.postService = postService;
+            this.userService = userService;
         }
 
         // GET: Porfile/Details/5
@@ -38,14 +37,12 @@ namespace SocialNetworkMiw.Controllers
                 if (string.IsNullOrEmpty(id))
                     return NotFound();
 
-                var user = collectionUser
-                            .Find(new BsonDocument("$where", "this._id == '" + id + "'")).FirstOrDefault();
+                var user = userService.Get(id);
 
                 if (user == null)
                     return NotFound();
 
-                var currentUser = collectionUser
-                                .Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+                var currentUser = userService.Get(HttpContext.Session.GetString("UserId"));
 
                 PorfileDetailsViewModel porfileViewModel = new PorfileDetailsViewModel();
 
@@ -60,13 +57,12 @@ namespace SocialNetworkMiw.Controllers
                 porfileViewModel.BornIn = user.BornIn;
                 porfileViewModel.Email = user.Email;
                 porfileViewModel.Job = user.Job;
-                porfileViewModel.Posts = collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList().Select(u => new ShowPostViewModel()
+                porfileViewModel.Posts = postService.GetByUserId(id).Select(u => new ShowPostViewModel()
                 {
                     UserName = user.Name,
                     Post = u
                 }).OrderByDescending(u => u.Post.CreationDate).ToList();
-                var filterFriend = Builders<User>.Filter.In(u => u.Id, user.Friends);
-                porfileViewModel.Friends = collectionUser.Find(filterFriend).ToList();
+                porfileViewModel.Friends = userService.Get(user.Friends);
                 porfileViewModel.City = user.City;
                 porfileViewModel.Id = user.Id;
                 porfileViewModel.ImageUrl = user.ImageUrl;
@@ -101,7 +97,7 @@ namespace SocialNetworkMiw.Controllers
                         Description = createPostViewModel.Description,
                         CreationDate = DateTime.Now
                     };
-                    await collectionPost.InsertOneAsync(post);
+                    postService.Create(post);
                 }
                 return RedirectToAction(nameof(Details), new { id = HttpContext.Session.GetString("UserId") });
             }
@@ -125,7 +121,10 @@ namespace SocialNetworkMiw.Controllers
                     return View("Error", new ErrorViewModel());
                 }
 
-                var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + id + "'")).Single();
+                var user = userService.Get(id);
+
+                if(user == null)
+                    return NotFound();
 
                 return View(new EditPorfileViewModel()
                 {
@@ -149,13 +148,13 @@ namespace SocialNetworkMiw.Controllers
         {
             try
             {
-                if (id != user.Id || id != HttpContext.Session.GetString("UserId"))
+                if (!(id == user.Id && id == HttpContext.Session.GetString("UserId")))
                 {
                     return NotFound();
                 }
                 if (ModelState.IsValid)
                 {
-                    var _user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + user.Id + "'")).Single();
+                    var _user = userService.Get(user.Id);
                     _user.BirthDate = user.BirthDate;
                     _user.BornIn = user.From;
                     _user.City = user.City;
@@ -170,7 +169,7 @@ namespace SocialNetworkMiw.Controllers
                         }
                         _user.ImageUrl = "/Images/" + Path.GetFileName(path);
                     }
-                    collectionUser.ReplaceOne(u => u.Id == _user.Id, _user);
+                    userService.Update(_user.Id, _user);
                     HttpContext.Session.SetString("UserName", _user.Name);
                     HttpContext.Session.SetString("UserImage", _user.ImageUrl);
                     return RedirectToAction(nameof(Details), new { id = _user.Id });
@@ -194,14 +193,14 @@ namespace SocialNetworkMiw.Controllers
                 if (string.IsNullOrEmpty(postId))
                     return NotFound();
 
-                var post = collectionPost.Find(new BsonDocument("$where", "this._id == '" + postId + "'")).FirstOrDefault();
+                var post = postService.Get(postId);
 
                 if (post == null)
                     return NotFound();
 
                 if (post.UserId == HttpContext.Session.GetString("UserId"))
                 {
-                    collectionPost.DeleteOne(u => u.Id == post.Id);
+                    postService.Remove(post.Id);
                     return Redirect(returnUrl);
                 }
                 else
@@ -224,10 +223,9 @@ namespace SocialNetworkMiw.Controllers
                 if (string.IsNullOrEmpty(id))
                     return NotFound();
 
-                if (id == HttpContext.Session.GetString("UserId") ||
-                    collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().Friends.Any(u => u == id))
+                if (id == HttpContext.Session.GetString("UserId") || userService.Get(HttpContext.Session.GetString("UserId")).Friends.Any(u => u == id))
                 {
-                    return View(collectionPost.Find(new BsonDocument("$where", "this.UserId == '" + id + "'")).ToList());
+                    return View( postService.GetByUserId(id));
                 }
                 else
                 {

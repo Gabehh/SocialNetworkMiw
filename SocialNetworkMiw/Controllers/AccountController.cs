@@ -13,18 +13,17 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using SocialNetworkMiw.Services;
 
 namespace SocialNetworkMiw.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly MongoClient mongoClient;
-        private readonly IMongoCollection<User> collectionUser;
+        private readonly UserService userService;
 
-        public AccountController(IConfiguration configuration)
+        public AccountController(UserService userService)
         {
-            mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
-            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            this.userService = userService;
         }
 
         // GET: Account
@@ -65,7 +64,7 @@ namespace SocialNetworkMiw.Controllers
         {
             if (ModelState.IsValid)
             {
-                if(!collectionUser.Find(new BsonDocument("$where", "this.Email == '" + register.Email + "'")).Any())
+                if(userService.GetByEmail(register.Email) == null)
                 {
                     string password = string.Empty;
                     using (MD5 md5Hash = MD5.Create())
@@ -81,7 +80,7 @@ namespace SocialNetworkMiw.Controllers
                         FriendRequests = new List<FriendRequest>(),
                         ImageUrl = "/Images/icons/face.png"
                     };
-                    collectionUser.InsertOne(user);
+                    userService.Create(user);
                     await SignIn(user);
                     return RedirectToAction("Index", "Home");
                 }
@@ -114,7 +113,7 @@ namespace SocialNetworkMiw.Controllers
                 password = GetMd5Hash(md5Hash, model.Password);
             }
 
-            var user = collectionUser.Find(new BsonDocument("$where", "this.Email == '" + model.Email + "' && this.Password =='" + password + "'")).FirstOrDefault();
+            var user = userService.GetByEmailAndPassword(model.Email, password);
 
             if (user != null)
             {
