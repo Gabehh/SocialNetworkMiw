@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using SocialNetworkMiw.Services;
 
 namespace SocialNetworkMiw.Controllers
 {
@@ -16,16 +17,14 @@ namespace SocialNetworkMiw.Controllers
     public class NotificationController : Controller
     {
         private readonly ILogger<NotificationController> _logger;
-        private readonly MongoClient mongoClient;
-        private readonly IMongoCollection<User> collectionUser;
-        private readonly IMongoCollection<Chat> collectionChat;
+        private readonly UserService userService;
+        private readonly ChatService chatService;
 
-        public NotificationController(ILogger<NotificationController> logger, IConfiguration configuration)
+        public NotificationController(ILogger<NotificationController> logger, UserService userService, ChatService chatService)
         {
             _logger = logger;
-            mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
-            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
-            collectionChat = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<Chat>("Chats");
+            this.userService = userService;
+            this.chatService = chatService;
         }
 
 
@@ -34,11 +33,11 @@ namespace SocialNetworkMiw.Controllers
         {
             try
             {
-                var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+                var user = userService.Get(HttpContext.Session.GetString("UserId"));
                 List<NotificationViewModel> notificationViewModels = new List<NotificationViewModel>();
                 user.FriendRequests.ForEach(u =>
                 {
-                    var _user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + u.UserId + "'")).Single();
+                    var _user = userService.Get(u.UserId);
                     notificationViewModels.Add(new NotificationViewModel()
                     {
                         DateTime = u.DateTime,
@@ -66,16 +65,16 @@ namespace SocialNetworkMiw.Controllers
                 if (string.IsNullOrEmpty(idFrindRequest))
                     return NotFound();
 
-                var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+                var user = userService.Get(HttpContext.Session.GetString("UserId"));
                 if (user.FriendRequests.Any(u => u.Id == idFrindRequest))
                 {
                     FriendRequest request = user.FriendRequests.Single(u => u.Id == idFrindRequest);
-                    var friend = collectionUser.Find(new BsonDocument("$where", "this._id == '" + request.UserId + "'")).Single();
+                    var friend = userService.Get(request.UserId);
                     user.FriendRequests.Remove(request);
                     user.Friends.Add(request.UserId);
                     friend.Friends.Add(user.Id);
-                    collectionUser.ReplaceOne(u => u.Id == friend.Id, friend);
-                    collectionUser.ReplaceOne(u => u.Id == user.Id, user);
+                    userService.Update(friend.Id, friend);
+                    userService.Update(user.Id, user);
                     Chat chat = new Chat()
                     {
                         Friends = new List<string>()
@@ -85,13 +84,20 @@ namespace SocialNetworkMiw.Controllers
                     },
                         Content = new List<ChatContent>()
                     };
-                    collectionChat.InsertOne(chat);
+                    chatService.Create(chat);
                 }
                 else
                 {
                     return View("Error", new ErrorViewModel());
                 }
-                return Redirect(returnUrl);
+                if (Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+                else
+                {
+                    return View("Error", new ErrorViewModel());
+                }
             }
             catch(Exception ex)
             {
@@ -107,12 +113,12 @@ namespace SocialNetworkMiw.Controllers
                 if (string.IsNullOrEmpty(idFrindRequest))
                     return NotFound();
 
-                var user = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single();
+                var user = userService.Get(HttpContext.Session.GetString("UserId"));
                 if (user.FriendRequests.Any(u => u.Id == idFrindRequest))
                 {
                     FriendRequest request = user.FriendRequests.Single(u => u.Id == idFrindRequest);
                     user.FriendRequests.Remove(request);
-                    collectionUser.ReplaceOne(u => u.Id == user.Id, user);
+                    userService.Update(user.Id, user);
                 }
                 else
                 {
