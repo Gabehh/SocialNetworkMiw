@@ -8,21 +8,20 @@ using Microsoft.Extensions.Logging;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using SocialNetworkMiw.Services;
 
 namespace SocialNetworkMiw.Controllers
 {
     [Authorize]
     public class UserController : Controller
     {
-        private readonly MongoClient mongoClient;
-        private readonly IMongoCollection<User> collectionUser;
         private readonly ILogger<UserController> _logger;
+        private readonly UserService userService;
 
-        public UserController(ILogger<UserController> logger, IConfiguration configuration)
+        public UserController(ILogger<UserController> logger, UserService userService)
         {
             _logger = logger;
-            mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
-            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            this.userService = userService;
         }
 
         [HttpGet]
@@ -32,8 +31,8 @@ namespace SocialNetworkMiw.Controllers
             {
                 UserViewModel userViewModel = new UserViewModel()
                 {
-                    CurrentUserRequests = collectionUser.Find(new BsonDocument("$where", "this._id == '" + HttpContext.Session.GetString("UserId") + "'")).Single().FriendRequests,
-                    Users = collectionUser.Find(new BsonDocument("$where", "this.Name == '" + id + "'")).ToList()
+                    CurrentUserRequests = userService.Get(HttpContext.Session.GetString("UserId")).FriendRequests,
+                    Users = userService.GetByName(id)
                 };
                 return View(userViewModel);
             }

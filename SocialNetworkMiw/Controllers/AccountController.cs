@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,18 +14,19 @@ using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SocialNetworkMiw.Models;
+using SocialNetworkMiw.Services;
 
 namespace SocialNetworkMiw.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly MongoClient mongoClient;
-        private readonly IMongoCollection<User> collectionUser;
+        private readonly UserService userService;
+        private readonly HtmlEncoder htmlEncoder;
 
-        public AccountController(IConfiguration configuration)
+        public AccountController(UserService userService, HtmlEncoder htmlEncoder)
         {
-            mongoClient = new MongoClient(configuration.GetConnectionString("SocialNetwork"));
-            collectionUser = mongoClient.GetDatabase("SocialNetworkMIW").GetCollection<User>("Users");
+            this.userService = userService;
+            this.htmlEncoder = htmlEncoder;
         }
 
         // GET: Account
@@ -65,7 +67,7 @@ namespace SocialNetworkMiw.Controllers
         {
             if (ModelState.IsValid)
             {
-                if(!collectionUser.Find(new BsonDocument("$where", "this.Email == '" + register.Email + "'")).Any())
+                if(userService.GetByEmail(register.Email) == null)
                 {
                     string password = string.Empty;
                     using (MD5 md5Hash = MD5.Create())
@@ -74,14 +76,14 @@ namespace SocialNetworkMiw.Controllers
                     }
                     User user = new User()
                     {
-                        Name = register.Name,
-                        Email = register.Email,
+                        Name = htmlEncoder.Encode(register.Name),
+                        Email = htmlEncoder.Encode(register.Email),
                         Password = password,
                         Friends = new List<string>(),
                         FriendRequests = new List<FriendRequest>(),
                         ImageUrl = "/Images/icons/face.png"
                     };
-                    collectionUser.InsertOne(user);
+                    userService.Create(user);
                     await SignIn(user);
                     return RedirectToAction("Index", "Home");
                 }
@@ -114,7 +116,7 @@ namespace SocialNetworkMiw.Controllers
                 password = GetMd5Hash(md5Hash, model.Password);
             }
 
-            var user = collectionUser.Find(new BsonDocument("$where", "this.Email == '" + model.Email + "' && this.Password =='" + password + "'")).FirstOrDefault();
+            var user = userService.GetByEmailAndPassword(model.Email, password);
 
             if (user != null)
             {
