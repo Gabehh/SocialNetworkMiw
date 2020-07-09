@@ -93,7 +93,14 @@ namespace SocialNetworkMiw.Controllers
                 {
                     user.FriendRequests.Add(requestFriend);
                     userService.Update(user.Id, user);
-                    return Redirect(returnUrl);
+                    if (Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                    else
+                    {
+                        return View("Error", new ErrorViewModel());
+                    }
                 }
             }
             catch(Exception ex)
@@ -127,7 +134,14 @@ namespace SocialNetworkMiw.Controllers
                     userService.Update(friend.Id, friend);
                     var groupId = chatService.GetByUserIds(friend.Id, user.Id).Id;
                     chatService.Remove(groupId);
-                    return Redirect(returnUrl);
+                    if (Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                    else
+                    {
+                        return View("Error", new ErrorViewModel());
+                    }
                 }
                 else
                 {

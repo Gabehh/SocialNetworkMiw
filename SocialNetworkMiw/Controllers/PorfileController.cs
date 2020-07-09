@@ -204,7 +204,14 @@ namespace SocialNetworkMiw.Controllers
                 if (post.UserId == HttpContext.Session.GetString("UserId"))
                 {
                     postService.Remove(post.Id);
-                    return Redirect(returnUrl);
+                    if (Url.IsLocalUrl(returnUrl))
+                    {
+                        return Redirect(returnUrl);
+                    }
+                    else
+                    {
+                        return View("Error", new ErrorViewModel());
+                    }
                 }
                 else
                 {
