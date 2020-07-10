@@ -57,7 +57,8 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Accept(string idFrindRequest, string returnUrl)
         {
             try
@@ -106,6 +107,8 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Delete(string idFrindRequest)
         {
             try

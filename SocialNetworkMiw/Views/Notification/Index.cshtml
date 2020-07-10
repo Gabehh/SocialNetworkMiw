@@ -19,6 +19,7 @@
                 @Html.DisplayNameFor(model => model.DateTime)
             </th>
             <th></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -34,8 +35,23 @@
                 @Html.DisplayFor(modelItem => item.DateTime)
             </td>
             <td>
-                @Html.ActionLink("Accept", "Accept", new { idFrindRequest = item.FriendRequestId, returnUrl = Context.Request.Path + Context.Request.QueryString }) |
-                @Html.ActionLink("Delete", "Delete", new { idFrindRequest = item.FriendRequestId })
+                @using (Html.BeginForm("Accept", "Notification"))
+                {
+                    var url = @Context.Request.Path + @Context.Request.QueryString;
+                    @Html.AntiForgeryToken();
+                    <input type="hidden" id="idFrindRequest" name="idFrindRequest" value="@item.FriendRequestId" />
+                    <input type="hidden" id="returnUrl" value="@url" name="returnUrl" />
+                    <input type="submit" class="btn btn-outline-primary" style="float:right" role="button" aria-pressed="true" value="Confirm" />
+                }
+            </td>
+            <td>
+                @using (Html.BeginForm("Delete", "Notification"))
+                {
+                    var url = @Context.Request.Path + @Context.Request.QueryString;
+                    @Html.AntiForgeryToken();
+                    <input type="hidden" id="idFrindRequest" name="idFrindRequest" value="@item.FriendRequestId" />
+                    <input type="submit" class="btn btn-outline-danger" style="float:right" role="button" aria-pressed="true" value="Delete" />
+                }
             </td>
         </tr>
 }

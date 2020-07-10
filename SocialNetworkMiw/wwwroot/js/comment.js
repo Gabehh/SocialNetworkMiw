@@ -4,7 +4,8 @@
         method: 'POST',
         body: JSON.stringify({ IdPost: post, Comment: comment }),
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': $('input[name="__RequestVerificationToken"]').val()
         }
     }).then(function (response) {
         if (response.status == 200) {
@@ -33,7 +34,8 @@ function DeleteComment(post, comment, user) {
         method: 'POST',
         body: JSON.stringify({ PostId: post, CommentId: comment, UserId: user }),
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': $('input[name="__RequestVerificationToken"]').val()
         }
     }).then(function (response) {
         if (response.status == 200) {

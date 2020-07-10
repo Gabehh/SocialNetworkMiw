@@ -13,7 +13,6 @@
     if (post.Post.UserId == userId)
     {
         <button type="button" id="@post.Post.Id" class="btn btn-outline-danger modalDelete" data-toggle="modal" style="float:right;" data-target="#modalPost">Delete</button>
-        @*<a href="@Url.Action("DeletePost", "Porfile", new { postId = post.Post.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-danger btn-lg active" role="button" aria-pressed="true">Delete</a>*@
     }
     <br />
     <label class="control-label"><strong>@post.Post.Description</strong></label>
@@ -55,14 +54,12 @@
                                 }
                             }
                         </div>
-                        <form>
-                            <div class="form-group">
-                                <input placeholder="Write a comment" class="form-control @post.Post.Id" />
-                            </div>
-                            <div class="form-group">
-                                <input type="button" value="Send" onclick="WriteComment('@post.Post.Id',$('.@post.Post.Id').val())" class="btn btn-primary" />
-                            </div>
-                        </form>
+                        <div class="form-group">
+                            <input placeholder="Write a comment" class="form-control @post.Post.Id" />
+                        </div>
+                        <div class="form-group">
+                            <input type="button" value="Send" onclick="WriteComment('@post.Post.Id',$('.@post.Post.Id').val())" class="btn btn-primary" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -83,7 +80,13 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-dark" data-dismiss="modal">Cancel</button>
-                <a id="btnDelete" href="#" style="float:right" class="btn btn-outline-danger" role="button" aria-pressed="true">Delete Post</a>
+                @using (Html.BeginForm("DeletePost", "Porfile"))
+                {
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="postId" name="postId" />
+                    <input type="hidden" id="returnUrl" value="@returnUrl" name="returnUrl"/>
+                    <input type="submit" class="btn btn-outline-danger" role="button" aria-pressed="true" value="Delete Post" />
+                }
             </div>
         </div>
     </div>
@@ -93,6 +96,6 @@
 <script>
     $(".modalDelete").click(function () {
         var id = $(this).attr("id");
-        $("#btnDelete").attr("href", "/Porfile/DeletePost?postId=" + id + "&returnUrl=" + '@returnUrl');
+        $("#postId").val(id);
     });
 </script>

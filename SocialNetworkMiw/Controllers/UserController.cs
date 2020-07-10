@@ -25,6 +25,7 @@ namespace SocialNetworkMiw.Controllers
         }
 
         [HttpGet]
+        [AutoValidateAntiforgeryToken]
         public ActionResult Details(string id)
         {
             try

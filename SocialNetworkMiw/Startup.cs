@@ -36,6 +36,7 @@ namespace SocialNetworkMiw
                 options.IdleTimeout = TimeSpan.FromSeconds(1850);
                 options.Cookie.SameSite = SameSiteMode.None;
             });
+            services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSignalR();
         }

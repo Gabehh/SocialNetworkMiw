@@ -63,6 +63,7 @@ namespace SocialNetworkMiw.Controllers
 
         // POST: Account/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(RegisterViewModel register)
         {
             if (ModelState.IsValid)
@@ -103,6 +104,7 @@ namespace SocialNetworkMiw.Controllers
         //
         // POST: /Account/Login
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)

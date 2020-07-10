@@ -66,14 +66,17 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
-        public ActionResult AddFriend(string id, string returnUrl)
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddFriend(string userId, string returnUrl)
         {
             try
             {
-                if (string.IsNullOrEmpty(id))
+                if (string.IsNullOrEmpty(userId))
                     return NotFound();
 
-                var user = userService.Get(id);
+                var user = userService.Get(userId);
 
                 if (user == null)
                     return NotFound();
@@ -110,7 +113,8 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult DeleteFriend(string friendId, string returnUrl)
         {
             try
