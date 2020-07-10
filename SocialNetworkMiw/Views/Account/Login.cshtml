@@ -1,5 +1,5 @@
 ﻿@model SocialNetworkMiw.Models.LoginViewModel
-
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
 @{
     ViewData["Title"] = "Login";
 }
@@ -24,6 +24,7 @@
             <div class="form-group">
                 <input type="submit" value="Log in" class="btn btn-primary" />
             </div>
+            <input type="hidden" name="captcha" id="captchaInput" />
         </form>
     </div>
 </div>
@@ -34,4 +35,13 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="https://www.google.com/recaptcha/api.js?render=@Configuration["googleReCaptcha:SiteKey"]"></script>
+    <script>
+        grecaptcha.ready(function() {
+            window.grecaptcha.execute('@Configuration["googleReCaptcha:SiteKey"]', { action: 'Account' }).then(function (token) {
+                $("#captchaInput").val(token);
+            });
+        });
+    </script>
 }
+

@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SocialNetworkMiw.Services;
+using GoogleReCaptcha.V3;
+using GoogleReCaptcha.V3.Interface;
 
 namespace SocialNetworkMiw
 {
@@ -39,6 +41,10 @@ namespace SocialNetworkMiw
             services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSignalR();
+
+
+
+            services.AddHttpClient<ICaptchaValidator, GoogleReCaptchaValidator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
