@@ -22,9 +22,12 @@
         {
             <img src="@Url.Content(post.Post.FileUrl)" class="img-fluid" />
         }
-        else
+        else if (@post.Post.Type == "video")
         {
-            <iframe src="@Url.Content(post.Post.FileUrl)"></iframe>
+            <video controls>
+                <source src="@Url.Content(post.Post.FileUrl)" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
         }
     </div>
     <br />

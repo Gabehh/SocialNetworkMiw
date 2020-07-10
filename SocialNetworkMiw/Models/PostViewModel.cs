@@ -14,9 +14,10 @@ namespace SocialNetworkMiw.Models
     }
     public class CreatePostViewModel
     {
+        [Required]
         [Display(Name = "File")]
         [DataType(DataType.Upload)]
-        [Required]
+        [AllowedExtensions(new string[] { ".jpg", ".png", ".mp4" })]
         public IFormFile FileUrl { get; set; }
 
         [Display(Name = "Description")]
