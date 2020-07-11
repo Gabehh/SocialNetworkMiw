@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using GoogleReCaptcha.V3.Interface;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
@@ -22,11 +23,13 @@ namespace SocialNetworkMiw.Controllers
     {
         private readonly UserService userService;
         private readonly HtmlEncoder htmlEncoder;
+        private readonly ICaptchaValidator captchaValidator;
 
-        public AccountController(UserService userService, HtmlEncoder htmlEncoder)
+        public AccountController(UserService userService, HtmlEncoder htmlEncoder, ICaptchaValidator captchaValidator)
         {
             this.userService = userService;
             this.htmlEncoder = htmlEncoder;
+            this.captchaValidator = captchaValidator;
         }
 
         // GET: Account
@@ -63,6 +66,7 @@ namespace SocialNetworkMiw.Controllers
 
         // POST: Account/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<ActionResult> Create(RegisterViewModel register)
         {
             if (ModelState.IsValid)
@@ -103,8 +107,14 @@ namespace SocialNetworkMiw.Controllers
         //
         // POST: /Account/Login
         [HttpPost]
-        public async Task<ActionResult> Login(LoginViewModel model)
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> Login(LoginViewModel model, string captcha)
         {
+            if (!await captchaValidator.IsCaptchaPassedAsync(captcha))
+            {
+                ModelState.AddModelError("", "Captcha validation failed");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(model);

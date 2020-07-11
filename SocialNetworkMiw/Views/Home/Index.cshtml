@@ -3,16 +3,17 @@
 @{
     ViewData["Title"] = "Home Page";
 }
+
 <div class="row">
     <div class="col-4">
         <ul class="list-group">
             <li class="list-group-item"><strong>Chat</strong></li>
             @foreach (var item in Model.Friends)
             {
-    
+
                 var messages = item.UnreadMessage == 0 ? " " : "Unread: (" + item.UnreadMessage.ToString() + ")";
                 <li class="list-group-item list-group-item-info"><img src="@Url.Content(item.Friend.ImageUrl)" style="width:35px;height:35px" />  @Html.ActionLink(item.Friend.Name, "Index", "Chat", new { id = item.Friend.Id })  @messages</li>
-                
+
             }
             @if (!Model.Friends.Any())
             {

@@ -79,6 +79,7 @@ namespace SocialNetworkMiw.Controllers
 
         // POST: Porfile/Create
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost(CreatePostViewModel createPostViewModel)
         {
             try
@@ -110,6 +111,7 @@ namespace SocialNetworkMiw.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult WriteComment([FromBody] CreateCommentViewModel createCommentViewModel)
         {
             try
@@ -159,6 +161,7 @@ namespace SocialNetworkMiw.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public JsonResult DeleteComment([FromBody] DeleteCommentViewModel deleteCommentViewModel)
         {
             try
