@@ -15,43 +15,64 @@
 {
     @if (item.Id != id)
     {
-        <div class="jumbotron">
-            <div class="row">
-                <div class="col-md-6">
-                    <img src="@Url.Content(item.ImageUrl)" style="width:300px;height:300px" />
-                </div>
-                <div class="col-md-6">
-                    @Html.ActionLink(item.Name, "Details", "Porfile", new { id = item.Id }, new { @class = "display-4" })
-                    @{
-                        var countFriends = item.Friends == null ? "0" : item.Friends.Count().ToString();
-                    }
-                    <p class="lead">City: @item.City</p>
-                    <p class="lead">Job: @item.Job</p>
-                    <p class="lead">Friends: @countFriends</p>
-                </div>
-            </div>
-            <hr class="my-4">
-            @if (item.Friends.Any(u => u == id))
-            {
-                <p style="float:right"><strong>Friends</strong></p>
-            }
-            else if (!item.FriendRequests.Any(u => u.UserId == id))
-            {
-                if (Model.CurrentUserRequests.Any(u => u.UserId == item.Id))
-                {
-                    FriendRequest friendRequest = Model.CurrentUserRequests.Single(u => u.UserId == item.Id);
-                    <a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-outline-primary" role="button" aria-pressed="true">Confirm</a>
-                }
-                else
-                {
-                    <a href="@Url.Action("AddFriend", "Friend", new { id = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-outline-primary" role="button" aria-pressed="true">Add Friend</a>
-                }
-            }
-            else
-            {
-                <p style="float:right"><strong>Friend Request Sent</strong></p>
-            }
+<div class="jumbotron">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="@Url.Content(item.ImageUrl)" style="width:300px;height:300px" />
         </div>
+        <div class="col-md-6">
+            @Html.ActionLink(item.Name, "Details", "Porfile", new { id = item.Id }, new { @class = "display-4" })
+            @{
+                var countFriends = item.Friends == null ? "0" : item.Friends.Count().ToString();
+            }
+            <p class="lead">City: @item.City</p>
+            <p class="lead">Job: @item.Job</p>
+            <p class="lead">Friends: @countFriends</p>
+        </div>
+    </div>
+    <hr class="my-4">
+    @if (item.Friends.Any(u => u == id))
+    {
+        <p style="float:right"><strong>Friends</strong></p>
+    }
+    else if (!item.FriendRequests.Any(u => u.UserId == id))
+    {
+        if (Model.CurrentUserRequests.Any(u => u.UserId == item.Id))
+        {
+            FriendRequest friendRequest = Model.CurrentUserRequests.Single(u => u.UserId == item.Id);
+
+
+
+            @using (Html.BeginForm("Accept", "Notification"))
+            {
+                var url = @Context.Request.Path + @Context.Request.QueryString;
+                @Html.AntiForgeryToken();
+                <input type="hidden" id="idFrindRequest" name="idFrindRequest" value="@friendRequest.Id" />
+                <input type="hidden" id="returnUrl" value="@url" name="returnUrl" />
+                <input type="submit" class="btn btn-outline-primary" style="float:right" role="button" aria-pressed="true" value="Confirm" />
+            }
+
+            @*<a href="@Url.Action("Accept", "Notification", new { idFrindRequest = friendRequest.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-outline-primary" role="button" aria-pressed="true">Confirm</a>*@
+        }
+        else
+        {
+
+            @using (Html.BeginForm("AddFriend", "Friend"))
+            {
+                var url = @Context.Request.Path + @Context.Request.QueryString;
+                @Html.AntiForgeryToken();
+                <input type="hidden" id="userId" name="userId" value="@item.Id" />
+                <input type="hidden" id="returnUrl" value="@url" name="returnUrl" />
+                <input type="submit" style="float:right" class="btn btn-outline-primary" role="button" aria-pressed="true" value="Add Friend" />
+            }
+            @*<a href="@Url.Action("AddFriend", "Friend", new { id = item.Id, returnUrl = Context.Request.Path + Context.Request.QueryString })" style="float:right" class="btn btn-outline-primary" role="button" aria-pressed="true">Add Friend</a>*@
+        }
+    }
+    else
+    {
+        <p style="float:right"><strong>Friend Request Sent</strong></p>
+    }
+</div>
     }
 }
 

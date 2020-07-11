@@ -82,6 +82,7 @@ namespace SocialNetworkMiw.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePost(CreatePostViewModel createPostViewModel)
         {
             try
@@ -147,6 +148,7 @@ namespace SocialNetworkMiw.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, EditPorfileViewModel user)
         {
             try
@@ -189,6 +191,8 @@ namespace SocialNetworkMiw.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult DeletePost(string postId, string returnUrl)
         {
             try
@@ -224,7 +228,6 @@ namespace SocialNetworkMiw.Controllers
                 return View("Error", new ErrorViewModel());
             }
         }
-
 
         public ActionResult Photos(string id)
         {
