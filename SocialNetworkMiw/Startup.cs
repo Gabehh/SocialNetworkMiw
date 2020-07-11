@@ -31,19 +31,16 @@ namespace SocialNetworkMiw
             services.AddControllersWithViews();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(option =>
             {
-                option.Cookie.SameSite = SameSiteMode.None;
+                option.Cookie.SameSite = SameSiteMode.Strict;
             });
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromSeconds(1850);
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = SameSiteMode.Strict;
             });
             services.AddAntiforgery(options => options.HeaderName = "X-CSRF-TOKEN");
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSignalR();
-
-
-
             services.AddHttpClient<ICaptchaValidator, GoogleReCaptchaValidator>();
         }
 
